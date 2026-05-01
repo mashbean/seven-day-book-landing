@@ -1,0 +1,29 @@
+---
+import { SITE_TITLE, SITE_SUBTITLE } from "../site.config";
+import { withBase } from "../utils/paths";
+import ThemeToggle from "./ThemeToggle.astro";
+import BackToMain from "./BackToMain.astro";
+---
+
+<header
+  class="sticky top-0 z-50 border-b border-[var(--color-border-glass)]
+         bg-[var(--color-bg-glass)] backdrop-blur-xl"
+>
+  <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+    <!-- Left: Title -->
+    <a href={withBase("/")} class="flex flex-col leading-tight hover:opacity-80 transition-opacity">
+      <span class="text-lg font-bold font-serif text-[var(--color-accent)]">
+        {SITE_TITLE}
+      </span>
+      <span class="text-xs text-[var(--color-text-muted)] tracking-wide">
+        {SITE_SUBTITLE}
+      </span>
+    </a>
+
+    <!-- Right: Nav -->
+    <nav class="flex items-center gap-4">
+      <BackToMain />
+      <ThemeToggle />
+    </nav>
+  </div>
+</header>

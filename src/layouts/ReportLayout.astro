@@ -1,0 +1,69 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+type Props = {
+  title: string;
+  description: string;
+  pubDate: Date;
+  tags?: string[];
+};
+
+const { title, description, pubDate, tags = [] } = Astro.props as Props;
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="report-page">
+    <article class="report">
+      <header class="report__header">
+        <p class="report__date">{pubDate.toISOString().slice(0, 10)}</p>
+        <h1>{title}</h1>
+        <p>{description}</p>
+        {tags.length > 0 && (
+          <ul class="report__tags">
+            {tags.map((tag) => <li>{tag}</li>)}
+          </ul>
+        )}
+      </header>
+      <div class="report__body">
+        <slot />
+      </div>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .report-page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 96px 24px;
+  }
+
+  .report__header {
+    margin-bottom: 48px;
+  }
+
+  .report__date {
+    color: var(--color-text-muted, #6f6f6f);
+    font-size: 14px;
+  }
+
+  .report__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 24px 0 0;
+    padding: 0;
+  }
+
+  .report__tags li {
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 13px;
+  }
+
+  .report__body {
+    line-height: 1.75;
+  }
+</style>

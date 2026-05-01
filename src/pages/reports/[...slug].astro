@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from "astro:content";
+import ReportLayout from "../../layouts/ReportLayout.astro";
+
+export async function getStaticPaths() {
+  let reports: Awaited<ReturnType<typeof getCollection>>;
+
+  try {
+    reports = await getCollection("reports");
+  } catch {
+    reports = [];
+  }
+
+  return reports
+    .filter((r) => !r.data.draft)
+    .map((report) => ({
+      params: { slug: report.id },
+      props: { report },
+    }));
+}
+
+const { report } = Astro.props;
+const { Content, headings } = await render(report);
+---
+
+<ReportLayout
+  id={report.id}
+  title={report.data.title}
+  description={report.data.description}
+  pubDate={report.data.pubDate}
+  updatedDate={report.data.updatedDate}
+  tags={report.data.tags}
+  headings={headings}
+  body={report.body ?? ""}
+  aiModel={report.data.aiModel}
+  aiPrompt={report.data.aiPrompt}
+  aiGeneratedDate={report.data.aiGeneratedDate}
+  humanReviewed={report.data.humanReviewed}
+>
+  <Content />
+</ReportLayout>

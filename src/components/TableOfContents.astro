@@ -1,0 +1,69 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{filtered.length > 0 && (
+  <nav id="toc" class="hidden lg:block sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-4">
+    <p class="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-3">
+      目錄
+    </p>
+    <ul class="space-y-1.5 text-sm border-l border-[var(--color-border)]">
+      {filtered.map((h) => (
+        <li>
+          <a
+            href={`#${h.slug}`}
+            class={`toc-link block py-0.5 transition-colors duration-200
+                     text-[var(--color-text-muted)] hover:text-[var(--color-accent)]
+                     ${h.depth === 3 ? "pl-6" : "pl-4"}
+                     border-l-2 -ml-px border-transparent`}
+            data-heading={h.slug}
+          >
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<script>
+  const links = document.querySelectorAll<HTMLAnchorElement>(".toc-link");
+  const headings = Array.from(links).map((link) => {
+    const id = link.dataset.heading!;
+    return { id, el: document.getElementById(id), link };
+  });
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          links.forEach((l) => {
+            l.style.borderColor = "transparent";
+            l.style.color = "";
+          });
+          const active = headings.find((h) => h.el === entry.target);
+          if (active) {
+            active.link.style.borderColor = "var(--color-accent)";
+            active.link.style.color = "var(--color-accent)";
+          }
+        }
+      }
+    },
+    { rootMargin: "-80px 0px -70% 0px", threshold: 0 },
+  );
+
+  headings.forEach((h) => {
+    if (h.el) observer.observe(h.el);
+  });
+</script>

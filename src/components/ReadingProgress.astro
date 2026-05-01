@@ -1,0 +1,23 @@
+---
+---
+
+<div
+  id="reading-progress"
+  class="fixed top-0 left-0 h-[3px] z-[100] bg-gradient-to-r from-[var(--color-accent)] to-amber-400"
+  style="width: 0%; transition: width 0.1s linear;"
+>
+</div>
+
+<script>
+  function updateProgress() {
+    const bar = document.getElementById("reading-progress");
+    if (!bar) return;
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+    bar.style.width = `${pct}%`;
+  }
+
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+</script>

@@ -16,6 +16,187 @@ export const sevenDayBookLanding = {
   contactHref:
     "mailto:ask@matters.town?subject=%E4%B8%83%E6%97%A5%E6%9B%B8%E5%90%88%E4%BD%9C%E6%B4%BD%E8%AB%87",
 
+  // ── B2B landing compatibility fields ────────────────────────────────
+  sourceNote:
+    "以下數據整合 Matters 公開活動頁、官方總結與近期七日書完結報告，適合合作洽談時快速理解活動規模。",
+  metrics: [
+    {
+      value: "9,000+",
+      unit: "篇",
+      label: "累計七日書作品",
+      source: "2026-01 官方總結回顧",
+    },
+    {
+      value: "800",
+      unit: "萬字+",
+      label: "累計書寫字數",
+      source: "2026-01 官方總結回顧",
+    },
+    {
+      value: "3,000+",
+      unit: "人",
+      label: "累計參與作者",
+      source: "官方活動資料整理",
+    },
+    {
+      value: "189",
+      unit: "位",
+      label: "大滿貫完成者",
+      source: "2026-04 大滿貫公告",
+    },
+    {
+      value: "12",
+      unit: "期",
+      label: "近一年主題活動",
+      source: "公開活動頁整理",
+    },
+  ],
+  primarySource: {
+    label: "Matters 七日書官方總結回顧",
+    href: "https://matters.town/a/u1510gz5by6o",
+    date: "2026-04",
+  },
+  accountMetrics: [
+    { value: "93", label: "已擷取官方文章", source: "公開帳號文章整理" },
+    { value: "185", label: "已整理公開圖片", source: "活動頁與文章素材整理" },
+    { value: "3009", label: "完結報告參與人次", source: "各期公開完結報告加總" },
+    { value: "58%", label: "近四期完成率", source: "近期完結報告估算" },
+  ],
+  caveats: [
+    "參與人次是活動期別加總，不等同於唯一作者數。",
+    "完結報告與公告使用公開資料整理，正式提案前可再以營運後台校正。",
+    "單期表現會隨主題、檔期與合作資源變動，建議以區間而非保證值溝通。",
+  ],
+  workflow: [
+    {
+      step: "01",
+      title: "共創七道題目",
+      body: "從合作方的公共議題、展演計畫或出版主題出發，轉譯成連續七天可書寫的提問。",
+    },
+    {
+      step: "02",
+      title: "七天同步書寫",
+      body: "Matters 社群在同一週內回應同一組題目，形成可持續閱讀、分享與策展的作品流。",
+    },
+    {
+      step: "03",
+      title: "整理為公共檔案",
+      body: "活動後可延伸完結報告、選集、講座、徽章或現場展示，讓內容沉澱為長期資產。",
+    },
+  ],
+  themes: [
+    {
+      group: "記憶與感官",
+      summary: "從氣味、物件、地方與衣櫥切入，讓私人記憶轉化成可共鳴的公共文本。",
+      articles: [
+        {
+          title: "氣味博物館",
+          href: "https://matters.town/e/aiafcgbu89p2",
+          image: `${CDN}/campaignCover/fb1bd2c2-754d-493b-9750-352ef7fe27b7.png/public`,
+        },
+        {
+          title: "衣櫥裡的自我",
+          href: "https://matters.town/e/nqbeo3cdn585",
+          image: `${CDN}/campaignCover/71c57cb5-aaf9-49a8-a530-3ef4a3a23a15.png/public`,
+        },
+      ],
+    },
+    {
+      group: "生活與工作",
+      summary: "把職場、帳本與日常交換寫成故事，適合品牌、出版與教育單位延伸策展。",
+      articles: [
+        {
+          title: "我的人生帳本",
+          href: "https://matters.town/e/q48dv6ve4g2m",
+          image: `${CDN}/campaignCover/2e4aac3f-a9e3-4155-8a4e-7276420e3655.png/public`,
+        },
+        {
+          title: "我的職場人格",
+          href: "https://matters.town/e/wem6xy6u7okv",
+          image: `${CDN}/campaignCover/b0246b96-bb14-4c82-af86-62fffbd9b14b.png/public`,
+        },
+      ],
+    },
+    {
+      group: "身份與關係",
+      summary: "透過家庭、告別、曖昧與雲端身份，打開跨世代與跨媒介的生命經驗。",
+      articles: [
+        {
+          title: "數位雲端的我",
+          href: "https://matters.town/e/4v5mndkbz44v",
+          image: `${CDN}/campaignCover/96fd12ba-e46c-4316-9fe1-b5f13cf34b9f.png/public`,
+        },
+        {
+          title: "說聲告別，走向新的自己",
+          href: "https://matters.town/e/ox9fmcz6zxxj",
+          image: `${CDN}/campaignCover/94525f57-eb5e-4e4a-9b5c-88af2ccb097f.png/public`,
+        },
+      ],
+    },
+  ],
+  publicValues: [
+    {
+      title: "把分散作品變成共同記憶",
+      body: "七日書讓同一週、同一題下的個人經驗彼此對照，形成比單篇文章更容易被策展與保存的集體文本。",
+    },
+    {
+      title: "降低文化參與門檻",
+      body: "不要求專業作者身份，只需要每天一題，讓文化機構與品牌能觸及已經願意書寫與回應的社群。",
+    },
+    {
+      title: "讓活動留下可複用資產",
+      body: "每期題目、作品、圖片、徽章與報告都能延伸成選集、展示、電子報、社群內容與長期資料庫。",
+    },
+    {
+      title: "連接線上社群與實體場景",
+      body: "七日書可搭配講座、展演、節慶與出版計畫，把線上作品帶回合作方的現場。",
+    },
+  ],
+  keywords: ["書寫", "記憶", "社群", "策展", "出版", "講座", "徽章", "檔案", "公共議題"],
+  caseStudy: {
+    title: "兩廳院藝術出走 · 給自己的情書",
+    summary:
+      "2025 夏，Matters 與兩廳院「藝術出走」合作主題徵文「給自己的情書」，近 500 位文友書寫回應，成為該檔戶外節目的文字延伸。",
+    facts: [
+      "合作形式：主題徵文、作家講座、鏈上參與憑證",
+      "活動規模：近 500 位參與者，串接線上書寫與實體節目",
+      "延伸方式：可整理選集、現場展示與官方社群導流",
+    ],
+    href: "https://matters.town/@freewrite",
+    image: `${CDN}/cover/1060a3d5-cbb9-4140-9b04-a0acb011449a.jpeg/public`,
+  },
+  packages: [
+    {
+      title: "主題共創",
+      body: "為文化機構、基金會或品牌設計一組七日書題目，讓社群以連續七天回應同一公共議題。",
+    },
+    {
+      title: "內容策展",
+      body: "將作品整理成完結報告、選集、電子報或展場素材，讓活動成果可閱讀、可分享、可留存。",
+    },
+    {
+      title: "講座與憑證",
+      body: "搭配作家講座、完成徽章與 Writing Passport，強化參與者的完成感與長期連結。",
+    },
+  ],
+  tagLinks: [
+    {
+      label: "七日書",
+      count: "長期標籤",
+      href: "https://matters.town/tags/167821-%E4%B8%83%E6%97%A5%E6%9B%B8",
+    },
+    {
+      label: "自由寫",
+      count: "官方帳號",
+      href: "https://matters.town/@freewrite",
+    },
+    {
+      label: "活動頁",
+      count: "近期主題",
+      href: "https://matters.town/events?type=ended",
+    },
+  ],
+
   // ── Hero / 首屏 ───────────────────────────────────────────────────────
   hero: {
     eyebrow: "Matters · 每月一本",

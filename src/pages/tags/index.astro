@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPublishedReports, getAllTags } from "../../utils/reports";
+import { withBase } from "../../utils/paths";
+
+const reports = await getPublishedReports();
+const tags = getAllTags(reports);
+
+const tagCounts = new Map<string, number>();
+for (const r of reports) {
+  for (const t of r.data.tags) {
+    tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+  }
+}
+---
+
+<BaseLayout title="標籤">
+  <h1 class="text-3xl font-bold font-serif mb-8 reveal">標籤</h1>
+
+  <div class="flex flex-wrap gap-3 reveal">
+    {tags.map((tag) => (
+      <a
+        href={withBase(`/tags/${tag}/`)}
+        class="px-4 py-2 rounded-full border border-[var(--color-border)]
+               text-[var(--color-text-muted)]
+               hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]
+               transition-colors"
+      >
+        {tag}
+        <span class="ml-1 text-xs opacity-60">({tagCounts.get(tag)})</span>
+      </a>
+    ))}
+  </div>
+</BaseLayout>

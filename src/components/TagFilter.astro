@@ -1,0 +1,59 @@
+---
+interface Props {
+  tags: string[];
+}
+const { tags } = Astro.props;
+---
+
+<div id="tag-filter" class="flex flex-wrap gap-2 mb-8">
+  <button
+    class="tag-pill active text-xs px-3 py-1.5 rounded-full border cursor-pointer
+           border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]
+           transition-all duration-200"
+    data-tag="all"
+  >
+    全部
+  </button>
+  {tags.map((tag) => (
+    <button
+      class="tag-pill text-xs px-3 py-1.5 rounded-full border cursor-pointer
+             border-[var(--color-border)] text-[var(--color-text-muted)]
+             hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]
+             transition-all duration-200"
+      data-tag={tag}
+    >
+      {tag}
+    </button>
+  ))}
+</div>
+
+<script>
+  const pills = document.querySelectorAll<HTMLButtonElement>(".tag-pill");
+  const cards = document.querySelectorAll<HTMLElement>(".report-card");
+
+  pills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      const tag = pill.dataset.tag!;
+
+      // Update active pill
+      pills.forEach((p) => {
+        p.classList.remove("active");
+        p.style.borderColor = "";
+        p.style.background = "";
+        p.style.color = "";
+      });
+      pill.classList.add("active");
+
+      // Filter cards
+      cards.forEach((card) => {
+        const cardTags = (card.dataset.tags || "").split(",");
+        const show = tag === "all" || cardTags.includes(tag);
+        card.style.opacity = show ? "1" : "0";
+        card.style.transform = show ? "translateY(0)" : "translateY(8px)";
+        card.style.pointerEvents = show ? "auto" : "none";
+        card.style.position = show ? "relative" : "absolute";
+        card.style.visibility = show ? "visible" : "hidden";
+      });
+    });
+  });
+</script>

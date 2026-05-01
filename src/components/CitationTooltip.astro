@@ -1,0 +1,194 @@
+<!--
+  CitationTooltip.astro
+  ---------------------
+  Client-side script that transforms inline citation markers (rendered as
+  <sup>N</sup> by Astro's markdown processor from [N] in source) into
+  interactive superscript links with hover tooltips showing the
+  corresponding reference from the "參考來源 / 參考資料 / 引用資料" section.
+
+  Features:
+  - Hover tooltip with reference text
+  - Click to jump to reference (smooth scroll)
+  - Back-reference ↩ link in reference list to jump back to citation
+  - Smart tooltip positioning to prevent overflow
+  - Mobile-friendly fixed tooltip at bottom of screen
+-->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const prose = document.querySelector(".report-prose");
+    if (!prose) return;
+
+    /* ── 1. Locate the reference list ─────────────────────────── */
+    const refHeading = Array.from(prose.querySelectorAll("h2, h3")).find((h) =>
+      /參考(來源|資料)|引用(資料|來源)|references/i.test(h.textContent ?? "")
+    );
+    if (!refHeading) return;
+
+    // Collect references from <ol>/<ul> lists or <p> tags after the heading
+    const refs: Map<number, { text: string; html: string }> = new Map();
+
+    let el: Element | null = refHeading.nextElementSibling;
+    while (el) {
+      if (el.matches("ol, ul")) {
+        el.querySelectorAll("li").forEach((li) => {
+          const idx = refs.size + 1;
+          refs.set(idx, {
+            text: li.textContent?.trim() ?? "",
+            html: li.innerHTML.trim(),
+          });
+        });
+      } else if (el.matches("p")) {
+        const m = el.textContent?.match(/^(\d+)\.\s+/);
+        if (m) {
+          const idx = parseInt(m[1], 10);
+          const html = el.innerHTML.replace(/^\d+\.\s*/, "").trim();
+          refs.set(idx, {
+            text: el.textContent?.replace(/^\d+\.\s*/, "").trim() ?? "",
+            html,
+          });
+        }
+      }
+      el = el.nextElementSibling;
+    }
+
+    if (refs.size === 0) return;
+
+    /* ── 2. Track first occurrence of each citation for back-ref ── */
+    const firstCiteIds: Map<number, string> = new Map();
+
+    /* ── 3. Find <sup>N</sup> elements and enhance them ───────── */
+    // Astro's markdown renderer converts [N] into <sup>N</sup>
+    const allSups = prose.querySelectorAll("sup");
+
+    allSups.forEach((sup) => {
+      // Skip if already processed or inside the references section
+      if (sup.classList.contains("citation-ref")) return;
+      const pos = refHeading.compareDocumentPosition(sup);
+      if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return;
+
+      // Check if content is a pure number
+      const text = sup.textContent?.trim() ?? "";
+      const num = parseInt(text, 10);
+      if (isNaN(num) || String(num) !== text) return;
+
+      const ref = refs.get(num);
+      if (!ref) return;
+
+      // Assign id for back-reference (first occurrence only)
+      const citeId = `cite-${num}`;
+      if (!firstCiteIds.has(num)) {
+        sup.id = citeId;
+        firstCiteIds.set(num, citeId);
+      }
+
+      // Transform the <sup> into an interactive citation
+      sup.className = "citation-ref";
+
+      // Clear existing content
+      sup.textContent = "";
+
+      const anchor = document.createElement("a");
+      anchor.href = `#ref-${num}`;
+      anchor.className = "citation-number";
+      anchor.textContent = `${num}`;
+      anchor.setAttribute("aria-label", `參考資料 ${num}`);
+      anchor.setAttribute("data-citation", String(num));
+
+      const tooltip = document.createElement("span");
+      tooltip.className = "citation-tooltip";
+      tooltip.setAttribute("role", "tooltip");
+      tooltip.innerHTML = `<span class="citation-tooltip-num">[${num}]</span> ${ref.html}`;
+
+      sup.appendChild(anchor);
+      sup.appendChild(tooltip);
+    });
+
+    /* ── 4. Add id anchors + back-reference links to reference items ── */
+    refs.forEach((_, num) => {
+      let el: Element | null = refHeading.nextElementSibling;
+      let counter = 0;
+      while (el) {
+        if (el.matches("ol, ul")) {
+          el.querySelectorAll("li").forEach((li) => {
+            counter++;
+            if (counter === num) {
+              if (!li.id) li.id = `ref-${num}`;
+              appendBackRef(li, num);
+            }
+          });
+        } else if (el.matches("p")) {
+          const m = el.textContent?.match(/^(\d+)\.\s+/);
+          if (m && parseInt(m[1], 10) === num) {
+            el.id = `ref-${num}`;
+            appendBackRef(el, num);
+          }
+        }
+        el = el.nextElementSibling;
+      }
+    });
+
+    function appendBackRef(element: Element, num: number) {
+      const citeId = firstCiteIds.get(num);
+      if (!citeId) return;
+      // Don't add if back-ref already exists
+      if (element.querySelector(".citation-backref")) return;
+
+      const backLink = document.createElement("a");
+      backLink.href = `#${citeId}`;
+      backLink.className = "citation-backref";
+      backLink.textContent = " ↩";
+      backLink.setAttribute("aria-label", `回到內文引用 ${num}`);
+      backLink.setAttribute("title", "回到內文");
+      element.appendChild(backLink);
+    }
+
+    /* ── 5. Smooth scroll for all citation links ─────────────── */
+    prose.addEventListener("click", (e) => {
+      const link = (e.target as Element).closest?.(
+        ".citation-number, .citation-backref"
+      ) as HTMLAnchorElement | null;
+      if (!link) return;
+
+      const targetId = link.getAttribute("href")?.slice(1);
+      if (!targetId) return;
+
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      // Brief highlight effect on the target
+      target.classList.add("citation-highlight");
+      setTimeout(() => target.classList.remove("citation-highlight"), 2000);
+    });
+
+    /* ── 6. Smart tooltip positioning ─────────────────────────── */
+    prose.addEventListener("mouseenter", (e) => {
+      const target = (e.target as Element).closest?.(".citation-ref");
+      if (!target) return;
+      const tooltip = target.querySelector(".citation-tooltip") as HTMLElement;
+      if (!tooltip) return;
+
+      tooltip.style.left = "";
+      tooltip.style.right = "";
+      tooltip.style.transform = "";
+
+      requestAnimationFrame(() => {
+        const rect = tooltip.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+
+        if (rect.right > viewportWidth - 16) {
+          tooltip.style.left = "auto";
+          tooltip.style.right = "0";
+          tooltip.style.transform = "none";
+        }
+        if (rect.left < 16) {
+          tooltip.style.left = "0";
+          tooltip.style.right = "auto";
+          tooltip.style.transform = "none";
+        }
+      });
+    }, true);
+  });
+</script>

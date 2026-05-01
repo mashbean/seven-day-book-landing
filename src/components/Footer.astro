@@ -1,0 +1,29 @@
+---
+import { MAIN_SITE_URL } from "../site.config";
+---
+
+<footer class="site-footer">
+  <span>AI-powered research — <a href={MAIN_SITE_URL} target="_blank" rel="noopener">mashbean.net</a></span>
+  <span>&copy; {new Date().getFullYear()}</span>
+</footer>
+
+<style>
+  .site-footer {
+    width: 80%;
+    margin: var(--space-8) auto var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-rule);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-ink-muted);
+    position: relative;
+    z-index: 2;
+  }
+  .site-footer a { text-decoration: none; color: var(--color-ink); }
+  .site-footer a:hover { text-decoration: underline; }
+  @media (max-width: 768px) { .site-footer { width: 90%; } }
+</style>

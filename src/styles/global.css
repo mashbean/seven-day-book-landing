@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./ds-tokens.css";
+@import "./ds-app.css";
+@import "./ds-card.css";
+@import "./prose.css";
+@import "./animations.css";
+
+@theme {
+  --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-serif: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    margin: 0;
+    color: var(--color-text);
+    background: var(--color-bg);
+    font-family: var(--font-sans);
+    line-height: 1.85;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  /* Focus ring for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Scrollbar styling for dark mode */
+  :root.dark {
+    scrollbar-color: var(--color-bg-muted) var(--color-bg);
+  }
+
+  :root.dark ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  :root.dark ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+
+  :root.dark ::-webkit-scrollbar-thumb {
+    background: var(--color-bg-muted);
+    border-radius: 4px;
+  }
+}

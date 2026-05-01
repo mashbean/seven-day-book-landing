@@ -1,0 +1,44 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ReportCard from "../../components/ReportCard.astro";
+import { getPublishedReports, getAllTags } from "../../utils/reports";
+
+export async function getStaticPaths() {
+  const reports = await getPublishedReports();
+  const tags = getAllTags(reports);
+  return tags.map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      reports: reports.filter((r) => r.data.tags.includes(tag)),
+    },
+  }));
+}
+
+const { tag, reports } = Astro.props;
+---
+
+<BaseLayout title={`#${tag}`}>
+  <h1 class="text-3xl font-bold font-serif mb-8 reveal">
+    <span class="text-[var(--color-accent)]">#</span>{tag}
+    <span class="text-base font-normal text-[var(--color-text-muted)] ml-2">
+      ({reports.length} 篇)
+    </span>
+  </h1>
+
+  <div class="grid gap-6 md:grid-cols-2 reveal-stagger">
+    {reports.map((report) => (
+      <div class="reveal">
+        <ReportCard
+          title={report.data.title}
+          description={report.data.description}
+          pubDate={report.data.pubDate}
+          tags={report.data.tags}
+          slug={report.id}
+          body={report.body ?? ""}
+          aiModel={report.data.aiModel}
+        />
+      </div>
+    ))}
+  </div>
+</BaseLayout>
