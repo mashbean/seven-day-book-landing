@@ -519,42 +519,49 @@ export const lectures = [
 ];
 
 // === 自由寫關鍵時刻（給寫作者頁與機構頁的時間軸用）===
+// image 取自對應公告文章的 cover（matters-lifeboat 抓 @freewrite 帳號後解析）
 export const milestones = [
   {
     date: "2024 / 4",
     title: "自由寫七日書 #1：陪你完成人生日記",
     body: "馬特市自由寫第一期上線，邀文友連續七天每天交一篇。",
     href: "https://matters.town/a/e6tu274xo8q1",
+    image: `${CDN}/embed/545d0541-ef8a-4f0d-a115-1f246a402faa.png/public`,
   },
   {
     date: "2024 / 8",
     title: "首批 189 位大滿貫文友獲得鏈上憑證",
     body: "走到第四期「我的人生飯桌」結束時，已經有 189 位文友寫滿七篇，獲頒大滿貫徽章與鏈上參與憑證。",
     href: "https://matters.town/a/u1510gz5by6o",
+    image: `${CDN}/cover/9f693119-3def-4c17-8803-9afa63bf6c47.jpeg/public`,
   },
   {
     date: "2025 / 4",
     title: "自由寫一週年：人生的靈魂提問",
     body: "從社區問卷回收的提問中設計題目，邀社群把孤獨、自由、愛與失敗寫下來。並推出「圈圈樂」小遊戲回顧寫作足跡。",
     href: "https://matters.town/a/zshwcolygqtl",
+    image: `${CDN}/cover/4d0788e8-7def-4065-b594-e83c4318737c.png/public`,
   },
   {
     date: "2025 / 8 - 10",
     title: "兩廳院藝術出走 · 給自己的情書",
     body: "與兩廳院合作三日書徵文，近 500 位文友參與，搭配郭強生與楊翠兩場線上講座。",
     href: "https://matters.town/a/saxy7wofhvxo",
+    image: `${CDN}/cover/402fc6a3-6ba5-4aeb-860c-aaaa1ccbc7bd.png/public`,
   },
   {
     date: "2026 / 1",
     title: "9,000 篇人生：七日書總結回顧",
     body: "走過 18 期，3,000+ 文友，9,000+ 篇文章，超過 800 萬字的書寫累積。",
     href: "https://matters.town/a/fmsotswq9g6b",
+    image: `${CDN}/cover/1060a3d5-cbb9-4140-9b04-a0acb011449a.jpeg/public`,
   },
   {
     date: "2026 / 3",
     title: "100 道題目實體出版預購",
     body: "把七日書曾經出過的 100 道題目集結成一本書寫手帳。",
     href: "https://matters.town/a/7v93q0nyizh8",
+    image: `${CDN}/embed/6c315174-c0c6-4803-9b3d-11d7ee095f05.png/public`,
   },
 ];
 
@@ -775,8 +782,6 @@ export const partnerPage = {
         href: "https://matters.town/a/y4pklp0w1eav",
       },
     ],
-    extension:
-      "兩廳院合作之實體展覽照片、展場陳列說明與入選文章清單仍待 Matters 營運側補上。",
   },
   packages: [
     {

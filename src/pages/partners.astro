@@ -33,12 +33,6 @@ const marqueeAvatars = [
   ...shared.avatarWall.slice(0, 24),
 ];
 
-const lectureTints = [
-  { bg: "#F0F9FE", fg: "#045898" },
-  { bg: "#FFF3DF", fg: "#A0651E" },
-  { bg: "#F2FAF7", fg: "#2D8700" },
-  { bg: "#FFFCE1", fg: "#8A6B2C" },
-];
 ---
 
 <BaseLayout title="七日書機構合作" description={partnerPage.description}>
@@ -149,7 +143,7 @@ const lectureTints = [
           </div>
           <p class="theme-pager__more">
             <a class="button button--quiet" href={withBase("archive/")}
-              >看圖片彙整版 archive →</a
+              >查看完整七日書博物館 →</a
             >
           </p>
         </div>
@@ -267,25 +261,14 @@ const lectureTints = [
 
           <div class="lecture-grid lecture-grid--dense">
             {
-              lectures.map((lecture, idx) => {
-                const tint = lectureTints[idx % lectureTints.length];
-                const monogram = lecture.speaker.slice(0, 1);
+              lectures.map((lecture) => {
                 return (
                   <article class="lecture-card lecture-card--compact">
-                    <div class="lecture-card__speaker">
-                      <span
-                        class="lecture-card__monogram"
-                        aria-hidden="true"
-                        style={`background:${tint.bg};color:${tint.fg};`}
-                      >
-                        {monogram}
+                    <div class="lecture-card__speaker lecture-card__speaker--text">
+                      <strong>{lecture.speaker}</strong>
+                      <span>
+                        {lecture.role} · {lecture.theme}
                       </span>
-                      <div>
-                        <strong>{lecture.speaker}</strong>
-                        <span>
-                          {lecture.role} · {lecture.theme}
-                        </span>
-                      </div>
                     </div>
                     {lecture.hasTranscript ? (
                       <>
@@ -388,7 +371,6 @@ const lectureTints = [
                   </div>
                 )
             }
-            <p class="note-line">{partnerPage.caseStudy.extension}</p>
           </div>
         </div>
       </section>
@@ -420,9 +402,6 @@ const lectureTints = [
               ))
             }
           </div>
-          <p class="note-line">
-            合作模組對應的圖示為書寫憑證徽章暫代，後續會由 Matters 設計團隊自 Figma 提供主題共創與名家講座的對應 icon。
-          </p>
         </div>
       </section>
 

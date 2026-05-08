@@ -47,13 +47,6 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
   themesPages.push(pastThemes.slice(i, i + themesPerPage));
 }
 
-// Lecture 講者頭像簡化：取主名第一字當 monogram；用 freewrite palette 4 色輪替
-const lectureTints = [
-  { bg: "#F0F9FE", fg: "#045898" },
-  { bg: "#FFF3DF", fg: "#A0651E" },
-  { bg: "#F2FAF7", fg: "#2D8700" },
-  { bg: "#FFFCE1", fg: "#8A6B2C" },
-];
 ---
 
 <BaseLayout title="七日書" description={audiencePage.description}>
@@ -102,11 +95,12 @@ const lectureTints = [
           <p class="eyebrow">{audiencePage.hero.eyebrow}</p>
           <h1 id="hero-title">{audiencePage.hero.headline}</h1>
           <p class="hero__lead">{audiencePage.hero.lead}</p>
-          <div class="hero__meta" aria-label="本期狀態">
-            <span class="pill">{audiencePage.currentIssue.title}</span>
-            <span class="pill">{audiencePage.currentIssue.period}</span>
-            <span class="pill">{audiencePage.currentIssue.status}</span>
-          </div>
+          <p class="hero__live" aria-label="本期狀態">
+            2026 年 5 月 七日書 ·
+            <strong>{audiencePage.currentIssue.title}</strong>
+            <span class="hero__live-dot" aria-hidden="true"></span>
+            <span class="hero__live-status">現正進行中</span>
+          </p>
           <div class="hero__actions">
             <a
               class="button button--primary"
@@ -341,25 +335,14 @@ const lectureTints = [
 
           <div class="lecture-grid lecture-grid--dense">
             {
-              lectures.map((lecture, idx) => {
-                const tint = lectureTints[idx % lectureTints.length];
-                const monogram = lecture.speaker.slice(0, 1);
+              lectures.map((lecture) => {
                 return (
                   <article class="lecture-card lecture-card--compact">
-                    <div class="lecture-card__speaker">
-                      <span
-                        class="lecture-card__monogram"
-                        aria-hidden="true"
-                        style={`background:${tint.bg};color:${tint.fg};`}
-                      >
-                        {monogram}
+                    <div class="lecture-card__speaker lecture-card__speaker--text">
+                      <strong>{lecture.speaker}</strong>
+                      <span>
+                        {lecture.role} · {lecture.theme}
                       </span>
-                      <div>
-                        <strong>{lecture.speaker}</strong>
-                        <span>
-                          {lecture.role} · {lecture.theme}
-                        </span>
-                      </div>
                     </div>
                     {lecture.hasTranscript ? (
                       <>
@@ -411,7 +394,7 @@ const lectureTints = [
               milestones.map((m) => (
                 <li>
                   <span class="milestone-timeline__date">{m.date}</span>
-                  <div>
+                  <div class="milestone-timeline__body">
                     <h3>{m.title}</h3>
                     <p>{m.body}</p>
                     <a
@@ -423,6 +406,11 @@ const lectureTints = [
                       閱讀公告 →
                     </a>
                   </div>
+                  {m.image && (
+                    <div class="milestone-timeline__media" aria-hidden="true">
+                      <img src={assetSrc(m.image)} alt="" loading="lazy" />
+                    </div>
+                  )}
                 </li>
               ))
             }
