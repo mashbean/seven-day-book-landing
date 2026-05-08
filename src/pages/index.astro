@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GrandBadge from "../components/GrandBadge.astro";
 import MattersWordmark from "../components/MattersWordmark.astro";
+import SevenDayBookLogo from "../components/SevenDayBookLogo.astro";
 import WritingCardGrid from "../components/WritingCardGrid.astro";
 import {
   audienceFaq,
@@ -57,10 +58,11 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
         href="https://matters.town"
         target="_blank"
         rel="noopener"
+        aria-label="Matters · 七日書"
       >
         <MattersWordmark size={18} />
-        <span class="sitebar__dot">·</span>
-        <span>七日書</span>
+        <span class="sitebar__dot" aria-hidden="true">·</span>
+        <SevenDayBookLogo size={20} title="七日書" />
       </a>
 
       <nav class="sitebar__nav" aria-label="頁面導覽">

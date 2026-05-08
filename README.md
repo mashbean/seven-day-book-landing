@@ -3,9 +3,29 @@
 > B2B + 社群導向的 Matters 七日書 landing page。
 > 情感敘事優先，承接合作方 / 新訪客 / 既有文友三種動線。
 
-**Live preview**：https://mashbean.github.io/seven-day-book-landing-preview/
-**Canonical repo**：`thematters/seven-day-book-landing-handoff` (private)
-**Preview mirror**：`mashbean/seven-day-book-landing-preview` (public)
+**Canonical repo**：`thematters/seven-day-book-landing` (public)
+
+## 部署網址
+
+| 階段 | URL | 狀態 |
+|---|---|---|
+| 目前（GH Pages） | https://thematters.github.io/seven-day-book-landing/ | live |
+| 目前（GH Pages） | https://thematters.github.io/seven-day-book-landing/partners/ | live |
+| 目前（GH Pages） | https://thematters.github.io/seven-day-book-landing/archive/ | live |
+| **正式網址（待切換）** | **https://freewriting.matters.town** | 規劃中 — 將覆蓋目前 GH Pages 三頁 |
+| **正式網址（待切換）** | **https://freewriting.matters.token/partnership** | 規劃中（注意：是 `partnership` 單數，非 `partners`） |
+| **正式網址（待切換）** | **https://freewriting.matters.token/museum** | 規劃中（從 `archive` 改名 `museum`） |
+
+切換正式網址時的 checklist：
+
+1. 在 `astro.config.ts` 設 `site = "https://freewriting.matters.town"`、`base = "/"`（或 GH Actions repo vars `SITE_URL` / `BASE_PATH`）
+2. 為 `/partnership` 與 `/museum` 路徑改名：
+   - `src/pages/partners.astro` → `src/pages/partnership.astro`
+   - `src/pages/archive.astro` → `src/pages/museum.astro`
+   - 更新所有 `withBase("partners/")` / `withBase("archive/")` 引用
+3. 在 GH Pages settings 設 custom domain `freewriting.matters.town`
+4. DNS 設 CNAME `freewriting.matters.town → thematters.github.io`
+5. 等 cert 簽完，啟用 HTTPS
 
 ---
 

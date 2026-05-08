@@ -35,8 +35,18 @@
   --board-pad-y: clamp(40px, 7vw, 64px);
   --board-gap: var(--space-sp32);             /* 32px */
 
-  /* ── Font stacks (ds tokens 提供 ui + reading；mono 由 landing 自備) ── */
-  --font-reading: var(--font-family-reading);
+  /* ── Font stacks ─────────────────────────────────────────────
+   * --font-display: jf-jinxuanlatte 2.1（justfont 金萱拿鐵商用授權）
+   *   只用於 H1/H2/H3 / 大標題 / 季節 slogan / 數字。
+   *   對應 thematters/design-system @ docs/freewrite-design-system/typography.md
+   *   "jf-jinxuan Bold 是 freewrite 的主要 display 字型"
+   *   weights ship 4 個：400 / 500 / 700 / 900；fallback Noto Serif TC → serif
+   * --font-ui: 內文沿用主 design-system 預設（PingFang TC / Source Han Sans TC）
+   *   不在 freewrite 域內覆寫 body，以維持 matters.town 全站視覺連續性
+   * --font-reading: 別名給既有 page CSS 用，指向 --font-display
+   */
+  --font-display: "jf-jinxuan", "Noto Serif TC", var(--font-family-reading), serif;
+  --font-reading: var(--font-display);
   --font-ui: var(--font-family-ui);
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 }
