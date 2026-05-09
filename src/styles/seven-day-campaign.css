@@ -1136,8 +1136,12 @@
 }
 
 .theme-pager__more {
-  margin: 36px 0 0;
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 40px 0 0;
 }
 
 /* ─── Theme list (partner page) ──────────────────────────────── */
@@ -1158,6 +1162,11 @@
   color: var(--ink);
   text-decoration: none;
   transition: border-color 160ms ease, background 160ms ease;
+}
+
+/* [hidden] 預設 display:none 被 .theme-row {display:grid} 蓋掉，這條補回來 */
+.theme-row[hidden] {
+  display: none;
 }
 
 .theme-row:hover {
