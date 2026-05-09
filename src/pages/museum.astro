@@ -13,6 +13,14 @@ import {
   uniqueUsers,
   eventCount,
 } from "../data/freewrite-marathoners";
+import {
+  featuredArticles,
+  featuredCampaigns,
+  featuredCount,
+} from "../data/freewrite-featured";
+
+// 預設只 show 12，使用者按 「展開更多」 +12
+const FEATURED_INITIAL = 12;
 import "../styles/seven-day-campaign.css";
 import { withBase } from "../utils/paths";
 
@@ -47,8 +55,9 @@ const archiveThemes = [...allThemes].reverse();
       </a>
 
       <nav class="sitebar__nav" aria-label="頁面導覽">
-        <a href="#my-journey">我的書寫旅程</a>
+        <a href="#my-journey">我的旅程</a>
         <a href="#marathoners">馬拉松選手</a>
+        <a href="#featured">歷年精選</a>
         <a href={homeHref}>本期七日書</a>
         <a href={partnersHref}>機構合作</a>
       </nav>
@@ -237,6 +246,119 @@ const archiveThemes = [...allThemes].reverse();
               href="https://github.com/thematters/seven-day-book-landing/blob/main/research/freewrite-marathoners.json"
               target="_blank"
               rel="noopener">research/freewrite-marathoners.json</a>。
+          </p>
+        </div>
+      </section>
+
+      <section
+        id="featured"
+        class="museum-featured"
+        aria-labelledby="featured-title"
+      >
+        <div class="museum-featured__inner">
+          <header class="museum-featured__head">
+            <p class="eyebrow">歷年精選文章</p>
+            <h2 id="featured-title">
+              {featuredCount} 篇被七日書官方留言「精選」過的文章。
+            </h2>
+            <p>
+              每月活動期間，自由寫團隊在 Slack 上挑出觸動到的文章、手動標到該期
+              campaign 的「精選」區塊。{featuredCampaigns.length} 期活動下來累積{featuredCount}
+              篇。下方按發表時間倒序，可用上方主題分頁切換。
+            </p>
+          </header>
+
+          <nav
+            class="featured-chips"
+            data-featured-chips
+            aria-label="切換期數"
+          >
+            <button
+              type="button"
+              class="featured-chip featured-chip--active"
+              data-chip-target="all"
+            >
+              全部 <span>{featuredCount}</span>
+            </button>
+            {
+              featuredCampaigns.map((c) => (
+                <button
+                  type="button"
+                  class="featured-chip"
+                  data-chip-target={c.shortHash}
+                  title={c.name}
+                >
+                  {c.label} <span>{c.count}</span>
+                </button>
+              ))
+            }
+          </nav>
+
+          <div
+            class="featured-grid"
+            data-featured-grid
+            data-initial={FEATURED_INITIAL}
+          >
+            {
+              featuredArticles.map((a, idx) => {
+                const trimmed =
+                  (a.summary || "").length > 84
+                    ? (a.summary || "").slice(0, 84) + "…"
+                    : a.summary;
+                const month = a.createdAt
+                  ? `${a.createdAt.slice(0, 4)} / ${Number(a.createdAt.slice(5, 7))}`
+                  : "";
+                return (
+                  <a
+                    class="featured-card"
+                    data-featured-card
+                    data-campaign={a.campaignHash}
+                    data-index={idx}
+                    href={`https://matters.town/a/${a.shortHash}`}
+                    target="_blank"
+                    rel="noopener"
+                    hidden={idx >= FEATURED_INITIAL}
+                  >
+                    {a.cover ? (
+                      <div class="featured-card__media">
+                        <img src={a.cover} alt="" loading="lazy" referrerpolicy="no-referrer" />
+                      </div>
+                    ) : (
+                      <div class="featured-card__media featured-card__media--empty" aria-hidden="true">
+                        <span>{a.title.slice(0, 1)}</span>
+                      </div>
+                    )}
+                    <div class="featured-card__body">
+                      <p class="featured-card__meta">
+                        <span>{month}</span>
+                        <span class="featured-card__campaign">{a.campaignName.replace("七日書｜", "").replace("七日書：", "").replace("三日書｜", "三日書·").replace("三日書：", "三日書·")}</span>
+                      </p>
+                      <h3 class="featured-card__title">{a.title}</h3>
+                      <p class="featured-card__summary">{trimmed}</p>
+                      <div class="featured-card__author">
+                        {a.author.avatar ? (
+                          <img src={a.author.avatar} alt="" loading="lazy" referrerpolicy="no-referrer" />
+                        ) : (
+                          <span class="featured-card__author-fallback" aria-hidden="true">{a.author.displayName.slice(0, 1)}</span>
+                        )}
+                        <span>{a.author.displayName}</span>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })
+            }
+          </div>
+
+          <p class="theme-pager__more">
+            <button
+              class="button button--soft"
+              type="button"
+              data-featured-more
+              aria-expanded="false"
+            >
+              <span data-featured-more-label>展開更多 12 篇 ↓</span>
+            </button>
           </p>
         </div>
       </section>
@@ -677,5 +799,60 @@ const archiveThemes = [...allThemes].reverse();
         runSearch(handle);
       });
     });
+
+    // ── 歷年精選文章：chip filter + show-more ───────────────────
+    (() => {
+      const grid = document.querySelector("[data-featured-grid]");
+      const chipsRoot = document.querySelector("[data-featured-chips]");
+      const moreBtn = document.querySelector("[data-featured-more]");
+      const moreLabel = document.querySelector("[data-featured-more-label]");
+      if (!grid || !chipsRoot || !moreBtn || !moreLabel) return;
+      const initial = Number(grid.getAttribute("data-initial") || "12");
+      const STEP = 12;
+      const cards = Array.from(grid.querySelectorAll("[data-featured-card]"));
+      let activeFilter = "all";
+      let visibleCount = initial;
+
+      const apply = () => {
+        const matched = cards.filter(
+          (c) => activeFilter === "all" || c.getAttribute("data-campaign") === activeFilter,
+        );
+        const total = matched.length;
+        let shown = 0;
+        // hide all
+        cards.forEach((c) => c.setAttribute("hidden", ""));
+        // show first N of matched
+        matched.slice(0, visibleCount).forEach((c) => {
+          c.removeAttribute("hidden");
+          shown++;
+        });
+        if (shown >= total) {
+          moreBtn.setAttribute("hidden", "");
+        } else {
+          moreBtn.removeAttribute("hidden");
+          moreLabel.textContent = `展開更多 ${Math.min(STEP, total - shown)} 篇 ↓`;
+        }
+      };
+
+      chipsRoot.querySelectorAll("[data-chip-target]").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          chipsRoot
+            .querySelectorAll("[data-chip-target]")
+            .forEach((c) => c.classList.remove("featured-chip--active"));
+          chip.classList.add("featured-chip--active");
+          activeFilter = chip.getAttribute("data-chip-target") || "all";
+          visibleCount = initial; // reset pagination when changing filter
+          apply();
+          grid.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      moreBtn.addEventListener("click", () => {
+        visibleCount += STEP;
+        apply();
+      });
+
+      apply();
+    })();
   </script>
 </BaseLayout>
