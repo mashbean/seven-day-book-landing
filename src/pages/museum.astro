@@ -68,6 +68,53 @@ const archiveThemes = [...allThemes].reverse();
         </div>
       </section>
 
+      <section
+        id="my-journey"
+        class="museum-passport"
+        aria-labelledby="my-journey-title"
+      >
+        <div class="museum-passport__inner">
+          <header class="museum-passport__head">
+            <p class="eyebrow">我的書寫旅程</p>
+            <h2 id="my-journey-title">在博物館裡，找你自己的展廳。</h2>
+            <p>
+              輸入你在 Matters 的帳號，看看你曾在哪幾期七日書留下文字 —
+              然後一鍵把這些足跡做成一本可愛的小書，自己留著、送朋友都可以。
+            </p>
+          </header>
+
+          <form class="passport-search passport-search--on-dark" id="museum-passport-search" novalidate>
+            <label class="passport-search__field">
+              <span class="passport-search__prefix" aria-hidden="true">@</span>
+              <input
+                type="text"
+                name="handle"
+                id="museum-passport-handle"
+                placeholder="你的 Matters 帳號"
+                autocomplete="off"
+                spellcheck="false"
+                inputmode="text"
+                required
+              />
+            </label>
+            <button class="button button--soft" type="submit">
+              查找我的旅程 →
+            </button>
+          </form>
+
+          <div
+            class="passport-result passport-result--on-dark"
+            id="museum-passport-result"
+            role="status"
+            aria-live="polite"
+          >
+            <p class="passport-hint">
+              提示：你的帳號就是 Matters 個人頁網址 <code>matters.town/@___</code> 後面那段。
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section class="archive-grid-section" aria-label="歷來七日書主題">
         <div class="archive-grid">
           {
@@ -137,5 +184,313 @@ const archiveThemes = [...allThemes].reverse();
         合作洽談：<a href={`mailto:${contactEmail}`}>{contactEmail}</a>
       </span>
     </footer>
+
+    <!-- 一鍵製作專屬七日書小書 modal — 印 PDF 用 window.print() + @page A5 portrait -->
+    <dialog
+      class="book-modal"
+      id="book-modal"
+      aria-labelledby="book-modal-title"
+    >
+      <div class="book-modal__chrome">
+        <div class="book-modal__chrome-left">
+          <h2 id="book-modal-title">你的七日書小書</h2>
+          <p>翻翻看下方預覽，按下「下載 PDF」就能存成一本 A5 小書。</p>
+        </div>
+        <div class="book-modal__chrome-actions">
+          <button
+            class="button button--quiet"
+            type="button"
+            data-close-book>關閉</button
+          >
+          <button
+            class="button button--primary"
+            type="button"
+            data-print-book>下載 PDF →</button
+          >
+        </div>
+      </div>
+      <div class="book-modal__pages" id="book-modal-pages">
+        <p class="book-modal__placeholder">
+          先在上方輸入帳號查找旅程，再回來這裡。
+        </p>
+      </div>
+    </dialog>
   </div>
+
+  <script is:inline>
+    // ── /museum 個人足跡：跟 / 寫作者頁同 logic 但加「製作我的小書」按鈕 ──
+    const passportForm = document.getElementById("museum-passport-search");
+    const passportResult = document.getElementById("museum-passport-result");
+    const passportInput = document.getElementById("museum-passport-handle");
+    const bookModal = document.getElementById("book-modal");
+    const bookPagesEl = document.getElementById("book-modal-pages");
+    const printBtn = document.querySelector("[data-print-book]");
+    const closeBtn = document.querySelector("[data-close-book]");
+
+    const MATTERS_GQL = "https://server.matters.town/graphql";
+    const MATTERS_BASE = "https://matters.town";
+    const FREEWRITE_NEEDLE = ["七日書", "三日書", "自由寫", "情書", "兩廳院"];
+
+    // 全域暫存最後一次查詢結果，按下「製作小書」時用
+    let lastJourney = null;
+
+    const escapeHtml = (s) =>
+      String(s ?? "").replace(/[&<>"']/g, (c) => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+      ));
+
+    const fetchUserArticles = async (handle) => {
+      const query = `query($userName: String!) {
+        user(input: { userName: $userName }) {
+          userName displayName avatar
+          articles(input: { first: 100 }) {
+            edges {
+              node {
+                shortHash slug title createdAt
+                campaigns { campaign { shortHash name } }
+              }
+            }
+          }
+        }
+      }`;
+      const res = await fetch(MATTERS_GQL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables: { userName: handle } }),
+      });
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors[0]?.message || "GraphQL error");
+      return json.data.user;
+    };
+
+    const groupByCampaign = (articles) => {
+      const groups = new Map();
+      articles.forEach((a) => {
+        const c = (a.campaigns || []).find((c) =>
+          FREEWRITE_NEEDLE.some((n) => (c.campaign?.name || "").includes(n)),
+        )?.campaign;
+        if (!c) return;
+        if (!groups.has(c.shortHash))
+          groups.set(c.shortHash, { campaign: c, articles: [] });
+        groups.get(c.shortHash).articles.push(a);
+      });
+      return [...groups.values()].sort((a, b) => {
+        const da = Math.max(...a.articles.map((x) => +new Date(x.createdAt)));
+        const db = Math.max(...b.articles.map((x) => +new Date(x.createdAt)));
+        return db - da;
+      });
+    };
+
+    const formatMonthLabel = (iso) => {
+      if (!iso) return "";
+      const [y, m] = iso.split("T")[0].split("-");
+      return `${y} 年 ${Number(m)} 月`;
+    };
+
+    const renderResult = (user) => {
+      if (!user) {
+        passportResult.innerHTML = `
+          <div class="passport-empty">
+            <h3>找不到這位文友的 Matters 帳號</h3>
+            <p>請確認帳號拼寫是否正確。</p>
+          </div>`;
+        lastJourney = null;
+        return;
+      }
+      const articles = (user.articles?.edges || [])
+        .map((e) => e.node)
+        .filter((a) =>
+          (a.campaigns || []).some((c) =>
+            FREEWRITE_NEEDLE.some((n) => (c.campaign?.name || "").includes(n)),
+          ),
+        );
+
+      if (!articles.length) {
+        passportResult.innerHTML = `
+          <div class="passport-empty">
+            <h3>${escapeHtml(user.displayName)} 還沒在七日書留下足跡</h3>
+            <p>查到 <a href="${MATTERS_BASE}/@${escapeHtml(user.userName)}" target="_blank" rel="noopener">@${escapeHtml(user.userName)}</a> 的 Matters 公開頁面，但沒看到七日書相關文章。</p>
+          </div>`;
+        lastJourney = null;
+        return;
+      }
+
+      const groups = groupByCampaign(articles);
+      lastJourney = { user, groups, totalArticles: articles.length };
+
+      const profileUrl = `${MATTERS_BASE}/@${user.userName}`;
+      const groupHtml = groups
+        .map((g) => {
+          const period = g.articles.map((a) => formatMonthLabel(a.createdAt)).filter(Boolean)[0];
+          const eventUrl = `${MATTERS_BASE}/e/${g.campaign.shortHash}`;
+          const articleList = g.articles
+            .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
+            .map(
+              (a) => `
+              <li>
+                <a href="${MATTERS_BASE}/a/${escapeHtml(a.shortHash)}" target="_blank" rel="noopener">
+                  ${escapeHtml(a.title)}
+                </a>
+                <span class="passport-article__date">${escapeHtml(a.createdAt.slice(0, 10))}</span>
+              </li>`,
+            ).join("");
+          return `
+            <article class="passport-group">
+              <header class="passport-group__head">
+                <div>
+                  <p class="passport-group__meta">${escapeHtml(period || "")} · ${g.articles.length} 篇</p>
+                  <h3>${escapeHtml(g.campaign.name)}</h3>
+                </div>
+                <a class="passport-group__link" href="${eventUrl}" target="_blank" rel="noopener">看活動頁 →</a>
+              </header>
+              <ul class="passport-group__articles">${articleList}</ul>
+            </article>`;
+        }).join("");
+
+      passportResult.innerHTML = `
+        <div class="passport-found">
+          <header class="passport-found__head">
+            ${user.avatar ? `<img class="passport-found__avatar" src="${escapeHtml(user.avatar)}" alt="" />` : ""}
+            <div>
+              <p class="passport-found__name">
+                ${escapeHtml(user.displayName)}
+                <a href="${profileUrl}" target="_blank" rel="noopener">@${escapeHtml(user.userName)} →</a>
+              </p>
+              <p class="passport-found__stats">
+                在 <strong>${groups.length}</strong> 期七日書活動裡，留下 <strong>${articles.length}</strong> 篇文章
+              </p>
+            </div>
+            <button
+              class="button button--soft passport-found__book-btn"
+              type="button"
+              data-open-book>製作我的七日書小書 →</button
+            >
+          </header>
+          <div class="passport-groups">${groupHtml}</div>
+        </div>`;
+
+      // re-bind open-book button (innerHTML refreshed)
+      const openBtn = passportResult.querySelector("[data-open-book]");
+      openBtn?.addEventListener("click", openBook);
+    };
+
+    // ── 小書 builder ──────────────────────────────────────────
+    const buildBookHtml = (journey) => {
+      if (!journey) return "";
+      const { user, groups, totalArticles } = journey;
+      const today = new Date();
+      const dateStr = `${today.getFullYear()} 年 ${today.getMonth() + 1} 月 ${today.getDate()} 日`;
+
+      // Cover page
+      const cover = `
+        <article class="book-page book-page--cover">
+          <div class="book-page__scribble book-page__scribble--top" aria-hidden="true"></div>
+          <div class="book-cover-content">
+            <p class="book-cover-eyebrow">Matters 七日書 · 個人足跡</p>
+            <h1 class="book-cover-title">${escapeHtml(user.displayName)}<br/>的小書</h1>
+            <p class="book-cover-handle">@${escapeHtml(user.userName)}</p>
+            <p class="book-cover-date">${dateStr} 編製</p>
+          </div>
+          <div class="book-page__scribble book-page__scribble--bottom" aria-hidden="true"></div>
+        </article>`;
+
+      // Stats page
+      const stats = `
+        <article class="book-page book-page--stats">
+          <p class="book-stats-eyebrow">這幾年的書寫</p>
+          <div class="book-stats-grid">
+            <div><strong>${groups.length}</strong><span>期七日書</span></div>
+            <div><strong>${totalArticles}</strong><span>篇文章</span></div>
+            <div><strong>${groups[0] ? formatMonthLabel(groups[groups.length - 1].articles[0].createdAt).split(' 年')[0] : '—'}</strong><span>第一次參與</span></div>
+          </div>
+          <p class="book-stats-tagline">每一篇都是一個七天裡安靜的下午。</p>
+        </article>`;
+
+      // TOC page
+      const tocItems = groups
+        .map((g, i) => {
+          const earliestArt = [...g.articles].sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))[0];
+          const period = formatMonthLabel(earliestArt.createdAt);
+          return `<li><span class="book-toc-no">${String(i + 1).padStart(2, "0")}</span><span class="book-toc-title">${escapeHtml(g.campaign.name)}</span><span class="book-toc-date">${escapeHtml(period)}</span></li>`;
+        }).join("");
+      const toc = `
+        <article class="book-page book-page--toc">
+          <p class="book-page-eyebrow">目錄</p>
+          <h2 class="book-page-h2">這本書收錄的 ${groups.length} 期</h2>
+          <ol class="book-toc-list">${tocItems}</ol>
+        </article>`;
+
+      // Issue pages
+      const issuePages = groups
+        .map((g, i) => {
+          const period = formatMonthLabel(g.articles[0].createdAt);
+          const articleList = g.articles
+            .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
+            .map((a) => `<li><span class="book-issue-art-title">${escapeHtml(a.title)}</span><span class="book-issue-art-date">${escapeHtml(a.createdAt.slice(5, 10).replace('-', ' / '))}</span></li>`)
+            .join("");
+          return `
+            <article class="book-page book-page--issue">
+              <p class="book-page-eyebrow">${escapeHtml(period)} · 第 ${i + 1} 站</p>
+              <h2 class="book-page-h2">${escapeHtml(g.campaign.name)}</h2>
+              <p class="book-issue-meta">這一期你寫了 ${g.articles.length} 篇</p>
+              <ol class="book-issue-articles">${articleList}</ol>
+              <p class="book-issue-link">
+                完整文章可在 matters.town/@${escapeHtml(user.userName)} 找到
+              </p>
+            </article>`;
+        }).join("");
+
+      // Closing page
+      const closing = `
+        <article class="book-page book-page--closing">
+          <div class="book-page__scribble book-page__scribble--top" aria-hidden="true"></div>
+          <div class="book-closing-content">
+            <p class="book-closing-quote">「下一個七天，<br/>繼續寫。」</p>
+            <p class="book-closing-meta">每月一期 · freewriting.matters.town</p>
+            <p class="book-closing-credit">Matters 自由寫 × 七日書</p>
+          </div>
+        </article>`;
+
+      return cover + stats + toc + issuePages + closing;
+    };
+
+    const openBook = () => {
+      if (!lastJourney) return;
+      bookPagesEl.innerHTML = buildBookHtml(lastJourney);
+      if (bookModal && typeof bookModal.showModal === "function") {
+        bookModal.showModal();
+      }
+    };
+
+    closeBtn?.addEventListener("click", () => bookModal?.close());
+    printBtn?.addEventListener("click", () => window.print());
+
+    const renderError = (msg) => {
+      passportResult.innerHTML = `
+        <div class="passport-empty">
+          <h3>查詢沒成功</h3>
+          <p>${escapeHtml(msg)}</p>
+        </div>`;
+      lastJourney = null;
+    };
+
+    const renderLoading = () => {
+      passportResult.innerHTML = `<p class="passport-loading" aria-busy="true">正在向 Matters 詢問你的書寫足跡…</p>`;
+    };
+
+    passportForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const raw = (passportInput?.value || "").trim();
+      if (!raw) return;
+      const handle = raw.replace(/^@/, "").replace(/^https?:\/\/[^/]+\/@?/, "");
+      if (!handle) return;
+      renderLoading();
+      try {
+        const user = await fetchUserArticles(handle);
+        renderResult(user);
+      } catch (err) {
+        renderError(err.message || String(err));
+      }
+    });
+  </script>
 </BaseLayout>
