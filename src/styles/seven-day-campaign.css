@@ -2707,6 +2707,16 @@
 
 /* ─── Book page (A5 portrait, 148mm × 210mm) ─────────────────── */
 .book-page {
+  /* book 頁面巢套在 .campaign-page--dark 內，必須把所有顏色 token 重設
+   * 為「白紙黑字」context；不然 var(--ink) 會解析到 museum 的白色文字 */
+  --ink: #2b2926;
+  --ink-muted: #6f6a63;
+  --campaign-accent-dark: #045898;
+  --campaign-accent: #1999d0;
+  --campaign-soft: #f0f9fe;
+  --campaign-warm: #fff3df;
+  --hairline: rgba(0, 0, 0, 0.12);
+
   position: relative;
   width: 148mm;
   min-height: 210mm;
@@ -2718,9 +2728,13 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   font-family: var(--font-display);
-  color: #2b2926;
+  color: var(--ink);
   page-break-after: always;
   break-after: page;
+}
+
+.book-page :where(h1, h2, h3, p, span, strong) {
+  color: var(--ink);
 }
 
 /* freewrite POAP scribble decoration — 真 SVG (design-system 取得) */
@@ -2969,10 +2983,15 @@
   font-weight: 500;
 }
 
-/* Per-article page */
+/* Per-article page — 不固定 height、長文章自然 flow 多頁 PDF
+ * 用 display: block（不是 flex）以利 print page-break 順暢
+ */
 .book-page--article {
-  display: flex;
-  flex-direction: column;
+  display: block;
+  /* 預覽中保留 A5 視覺感；長文章會自然超過 210mm 變高 */
+  min-height: 210mm;
+  /* 第二頁起 padding-top 由 @page margin 接管，這裡只是預覽美感 */
+  overflow: visible;
 }
 
 .book-article-title {
@@ -2992,6 +3011,8 @@
   border-radius: 2mm;
   overflow: hidden;
   background: var(--campaign-soft);
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .book-article-cover img {
@@ -3002,7 +3023,6 @@
 }
 
 .book-article-body {
-  flex: 1;
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
@@ -3010,18 +3030,53 @@
   font-weight: 400;
   line-height: 1.78;
   text-align: justify;
-  /* 多段堆疊；超出頁面就裁掉（PDF 不會多翻頁） */
-  overflow: hidden;
 }
 
 .book-article-body p {
   margin: 0 0 3mm;
-  /* 中文文字段落：保留斷行自然 */
   text-indent: 2em;
+  /* 段落不要在中間斷頁；如必要會整段移到下一頁 */
+  orphans: 2;
+  widows: 2;
 }
 
 .book-article-body p:first-child {
   text-indent: 0;
+}
+
+.book-article-body h3 {
+  margin: 8mm 0 3mm;
+  color: var(--campaign-accent-dark);
+  font-family: var(--font-display);
+  font-size: 13pt;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+.book-article-body blockquote {
+  margin: 4mm 0;
+  padding: 3mm 5mm;
+  border-left: 1mm solid var(--campaign-label, #83bad1);
+  background: var(--campaign-soft);
+  color: var(--ink);
+  font-style: italic;
+}
+
+.book-article-fig {
+  margin: 5mm 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.book-article-fig img {
+  display: block;
+  width: 100%;
+  max-height: 100mm;
+  object-fit: contain;
+  background: var(--campaign-soft);
+  border-radius: 2mm;
 }
 
 .book-article-fallback {
@@ -3034,7 +3089,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 8mm;
-  margin: 6mm 0 0;
+  margin: 8mm 0 0;
   padding-top: 3mm;
   border-top: 1px dotted rgba(0, 0, 0, 0.16);
   color: var(--ink-muted);
@@ -3144,14 +3199,34 @@
   }
   .book-page {
     width: 148mm !important;
-    height: 210mm !important;
-    min-height: 210mm !important;
     margin: 0 !important;
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    page-break-before: always;
+    break-before: page;
+  }
+  /* 固定頁（封面/統計/目錄/分隔頁/封底）保 A5 高度 */
+  .book-page--cover,
+  .book-page--stats,
+  .book-page--toc,
+  .book-page--divider,
+  .book-page--closing {
+    height: 210mm !important;
+    min-height: 210mm !important;
     page-break-after: always;
     break-after: page;
+  }
+  /* 文章頁不限高 — 長文章自然 flow 多頁 PDF */
+  .book-page--article {
+    min-height: 0 !important;
+    height: auto !important;
+    page-break-after: auto;
+    break-after: auto;
+    overflow: visible !important;
+  }
+  .book-page:first-child {
+    page-break-before: auto;
   }
   .book-page:last-child {
     page-break-after: auto;

@@ -265,21 +265,45 @@ const archiveThemes = [...allThemes].reverse();
       return json.data.user;
     };
 
-    // 從 markdown 萃出前 N 段純文字（去掉 ![] / [] / # 等 markup）
-    const firstParagraphs = (md, n) => {
-      if (!md) return [];
-      const cleanLine = (s) =>
-        s
-          .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // images
-          .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // links → text
-          .replace(/^#+\s*/g, "") // headers
-          .replace(/[*_`]/g, "") // bold/italic/code
-          .trim();
+    // 完整 markdown → HTML：段落 / 標題 / 圖片 / 引言 / 行內連結文字
+    // 不做 syntax highlighting、不做 list（matters 文章很少用 list 語法）
+    const mdToHtml = (md) => {
+      if (!md) return "";
       return md
         .split(/\n\s*\n+/)
-        .map((p) => cleanLine(p))
-        .filter((p) => p && p.length > 4)
-        .slice(0, n);
+        .map((blk) => {
+          const t = blk.trim();
+          if (!t) return "";
+          // Heading（# / ## / ### → 統一渲染 h3 級）
+          const h = t.match(/^(#{1,6})\s+(.+)$/);
+          if (h) {
+            const txt = escapeHtml(h[2].replace(/[*_`]/g, ""));
+            return `<h3>${txt}</h3>`;
+          }
+          // Image only block
+          const img = t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+          if (img) {
+            return `<figure class="book-article-fig"><img src="${escapeHtml(img[2])}" alt="${escapeHtml(img[1])}" loading="lazy" /></figure>`;
+          }
+          // Block quote
+          if (t.startsWith("> ")) {
+            const q = escapeHtml(
+              t.slice(2).replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/[*_`]/g, ""),
+            );
+            return `<blockquote>${q}</blockquote>`;
+          }
+          // Paragraph：strip 內聯 images、把 links 換成純文字、去粗體斜體 markup
+          const cleaned = t
+            .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+            .replace(/\*\*([^*]+)\*\*/g, "$1")
+            .replace(/\*([^*]+)\*/g, "$1")
+            .replace(/`([^`]+)`/g, "$1");
+          if (!cleaned.trim()) return "";
+          return `<p>${escapeHtml(cleaned)}</p>`;
+        })
+        .filter(Boolean)
+        .join("");
     };
 
     const groupByCampaign = (articles) => {
@@ -470,18 +494,18 @@ const archiveThemes = [...allThemes].reverse();
               <img class="book-scribble book-scribble--bl" src="${SCRIBBLE_BL}" alt="" />
             </article>`;
 
-          // Per-article pages (一張一篇 — 含 cover image + 前 4 段內文)
+          // Per-article pages (一篇一張 — 但長文章自然 flow 多頁 PDF)
+          // body 用完整 markdown → HTML，包含段落 / 標題 / 圖片
           const articlePages = sortedArts
             .map((a) => {
-              const paras = firstParagraphs(a.contents?.markdown, 4);
-              const bodyHtml = paras.length
-                ? paras.map((p) => `<p>${escapeHtml(p)}</p>`).join("")
+              const bodyHtml = a.contents?.markdown
+                ? mdToHtml(a.contents.markdown)
                 : `<p class="book-article-fallback">${escapeHtml(a.summary || "（這篇沒有摘要）")}</p>`;
               const dateLine = a.createdAt
                 ? `${a.createdAt.slice(0, 4)} 年 ${Number(a.createdAt.slice(5, 7))} 月 ${Number(a.createdAt.slice(8, 10))} 日`
                 : "";
               const coverHtml = a.cover
-                ? `<div class="book-article-cover"><img src="${escapeHtml(a.cover)}" alt="" /></div>`
+                ? `<div class="book-article-cover"><img src="${escapeHtml(a.cover)}" alt="" loading="lazy" /></div>`
                 : "";
               return `
                 <article class="book-page book-page--article">
