@@ -75,14 +75,27 @@ const archiveThemes = [...allThemes].reverse();
     </header>
 
     <main>
-      <section class="archive-hero" aria-labelledby="archive-title">
+      <section class="archive-hero archive-hero--centered" aria-labelledby="archive-title">
         <div class="archive-hero__inner">
-          <p class="eyebrow">Archive · 七日書博物館</p>
-          <h1 id="archive-title">收藏每一期，被七天寫下的小書。</h1>
+          <h1 id="archive-title" class="archive-hero__title">七日書博物館</h1>
           <p class="archive-hero__lead">
-            從 2024 春開始，每個月一組七天題目。共 {archiveThemes.length} 期、3,200+
-            位文友、9,000+ 篇人生。每一張主視覺都連回 Matters 活動頁；點進去就能讀到當期文友寫下的字。
+            從 2024 春開始，每個月一組七天題目。{archiveThemes.length} 期、3,200+
+            位文友、9,000+ 篇人生。
+            收藏每一期被七天寫下的小書 — 每張主視覺都連回 Matters 活動頁，
+            可以從任何一期開始讀。
           </p>
+        </div>
+      </section>
+
+      <!-- 博物館入口 banner：暗色框、放 freewrite 既有 dark accent 元素 -->
+      <section class="museum-banner" aria-hidden="true">
+        <div class="museum-banner__inner">
+          <img class="museum-banner__scribble museum-banner__scribble--tr" src={withBase("images/freewrite/scribble-tr.svg")} alt="" />
+          <div class="museum-banner__content">
+            <SevenDayBookLogo size={64} title="七日書" className="seven-day-book-logo--on-dark museum-banner__logo" />
+            <p class="museum-banner__tagline">{archiveThemes.length} 期 · 24 個月 · 一座持續長大的書寫展廳</p>
+          </div>
+          <img class="museum-banner__scribble museum-banner__scribble--bl" src={withBase("images/freewrite/scribble-bl.svg")} alt="" />
         </div>
       </section>
 
@@ -244,15 +257,6 @@ const archiveThemes = [...allThemes].reverse();
             }
           </ol>
 
-          <p class="museum-marathoners__foot">
-            排序依公開的活動報文紀錄（Matters
-            <code>campaign.articles</code> API），按 author 分組計篇數，再以
-            campaign 名判定七日書 / 三日書門檻。完整 50 名與 per-campaign 篇數見
-            <a
-              href="https://github.com/thematters/seven-day-book-landing/blob/main/research/freewrite-marathoners.json"
-              target="_blank"
-              rel="noopener">research/freewrite-marathoners.json</a>。
-          </p>
         </div>
       </section>
 
@@ -268,37 +272,63 @@ const archiveThemes = [...allThemes].reverse();
               {featuredCount} 篇被七日書官方留言「精選」過的文章。
             </h2>
             <p>
-              每月活動期間，自由寫團隊在 Slack 上挑出觸動到的文章、手動標到該期
-              campaign 的「精選」區塊。{featuredCampaigns.length} 期活動下來累積{featuredCount}
-              篇。下方按發表時間倒序，可用上方主題分頁切換。
+              這些是七日書策展團隊一篇一篇挑出來、放進每期展廳裡的常設典藏。
+              {featuredCampaigns.length} 期 ·  {featuredCount} 篇。
+              沿著時間軸找一場有興趣的展覽，或從最近一期開始翻。
             </p>
           </header>
 
-          <nav
-            class="featured-chips"
-            data-featured-chips
-            aria-label="切換期數"
-          >
-            <button
-              type="button"
-              class="featured-chip featured-chip--active"
-              data-chip-target="all"
-            >
-              全部 <span>{featuredCount}</span>
-            </button>
-            {
-              featuredCampaigns.map((c) => (
+          {(() => {
+            // 把 19 期分到 2024 / 2025 / 2026 三組，依時間排序
+            const years = [...new Set(featuredCampaigns.map((c) => c.year))].sort();
+            const grouped = years.map((y) => ({
+              year: y,
+              campaigns: featuredCampaigns
+                .filter((c) => c.year === y)
+                .sort((a, b) => a.month - b.month),
+            }));
+            return (
+              <nav
+                class="featured-timeline"
+                data-featured-chips
+                aria-label="按時間軸切換期數"
+              >
                 <button
                   type="button"
-                  class="featured-chip"
-                  data-chip-target={c.shortHash}
-                  title={c.name}
+                  class="featured-tl-chip featured-tl-chip--all featured-tl-chip--active"
+                  data-chip-target="all"
                 >
-                  {c.label} <span>{c.count}</span>
+                  <span class="featured-tl-chip__label">全部</span>
+                  <span class="featured-tl-chip__count">{featuredCount} 篇</span>
                 </button>
-              ))
-            }
-          </nav>
+                {
+                  grouped.map((g) => (
+                    <div class="featured-tl-year">
+                      <span class="featured-tl-year__label">{g.year}</span>
+                      <ol class="featured-tl-year__chips">
+                        {g.campaigns.map((c) => (
+                          <li>
+                            <button
+                              type="button"
+                              class="featured-tl-chip"
+                              data-chip-target={c.shortHash}
+                              title={c.name}
+                            >
+                              <span class="featured-tl-chip__month">
+                                {String(c.month).padStart(2, "0")} 月
+                              </span>
+                              <span class="featured-tl-chip__label">{c.label}</span>
+                              <span class="featured-tl-chip__count">{c.count} 篇</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ))
+                }
+              </nav>
+            );
+          })()}
 
           <div
             class="featured-grid"

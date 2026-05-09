@@ -7,34 +7,43 @@ export interface FeaturedArticle {
   title: string;
   summary: string;
   cover: string | null;
-  createdAt: string;       // ISO date
-  campaignHash: string;    // 屬於哪期
+  createdAt: string;
+  campaignHash: string;
   campaignName: string;
   author: { userName: string; displayName: string; avatar: string | null };
 }
 
 export const featuredCount = 531;
 
-export const featuredCampaigns = [
-  { shortHash: "wem6xy6u7okv", name: "七日書｜我的職場人格", label: "我的職場人格", count: 11 },
-  { shortHash: "aiafcgbu89p2", name: "七日書｜氣味博物館", label: "氣味博物館", count: 32 },
-  { shortHash: "q48dv6ve4g2m", name: "七日書｜我的人生帳本", label: "我的人生帳本", count: 39 },
-  { shortHash: "4v5mndkbz44v", name: "七日書｜數位雲端的我", label: "數位雲端的我", count: 37 },
-  { shortHash: "nqbeo3cdn585", name: "七日書｜衣櫥裡的自我", label: "衣櫥裡的自我", count: 20 },
-  { shortHash: "ox9fmcz6zxxj", name: "七日書｜說聲告別，走向新的自己", label: "說聲告別，走向新的自己", count: 34 },
-  { shortHash: "3uskpxsbzmz5", name: "七日書｜重構生活", label: "重構生活", count: 52 },
-  { shortHash: "owt3jxplay6z", name: "七日書｜曖昧時刻", label: "曖昧時刻", count: 24 },
-  { shortHash: "rt04oolqbexh", name: "兩廳院藝術出走：給自己的情書「三日書」徵文活動（九月：標記回憶的位置與意義｜客座作家：楊翠）", label: "兩廳院藝術出走：給自己的情書…", count: 20 },
-  { shortHash: "5zhf2bpty274", name: "兩廳院藝術出走：給自己的情書「三日書」徵文活動（八月：關於人生，我想說的是｜客座作家：郭強生）", label: "兩廳院藝術出走：給自己的情書…", count: 26 },
-  { shortHash: "h2ya9xxjubd2", name: "三日書｜被過度期待的人：燃燒自我的故事", label: "三日書·被過度期待的人：燃燒…", count: 15 },
-  { shortHash: "efkk0l9hcg96", name: "七日書｜What If 人生有如果", label: "What If 人生有如果", count: 37 },
-  { shortHash: "26uhbm3uh6rg", name: "七日書一週年｜寫作，給人生的靈魂提問", label: "七日書一週年｜寫作，給人生的…", count: 37 },
-  { shortHash: "4nqnizsygmcn", name: "七日書：書寫地方", label: "書寫地方", count: 46 },
-  { shortHash: "f7rpyecg32mg", name: "七日書：我的家庭故事", label: "我的家庭故事", count: 17 },
-  { shortHash: "x4rv6dwgk68o", name: "七日書：人間鬼故事", label: "人間鬼故事", count: 39 },
-  { shortHash: "eqsfuc3qph6u", name: "七日書：我的（不）完美人生", label: "我的（不）完美人生", count: 15 },
-  { shortHash: "8t5liudbtpup", name: "七日書：物的體系，我的物件錄", label: "物的體系，我的物件錄", count: 13 },
-  { shortHash: "scx3f16y37v6", name: "七日書：島嶼精神，另類人生", label: "島嶼精神，另類人生", count: 17 },
+export interface FeaturedCampaign {
+  shortHash: string;
+  name: string;        // 完整名稱
+  label: string;       // 簡短主題名（去掉「七日書｜」前綴）
+  count: number;       // 該期精選文章數
+  year: number;        // 該期發生年份（取最早文章 createdAt）
+  month: number;       // 該期發生月份
+}
+
+export const featuredCampaigns: FeaturedCampaign[] = [
+  { shortHash: "wem6xy6u7okv", name: "七日書｜我的職場人格", label: "我的職場人格", count: 11, year: 2026, month: 5 },
+  { shortHash: "aiafcgbu89p2", name: "七日書｜氣味博物館", label: "氣味博物館", count: 32, year: 2026, month: 4 },
+  { shortHash: "q48dv6ve4g2m", name: "七日書｜我的人生帳本", label: "我的人生帳本", count: 39, year: 2026, month: 3 },
+  { shortHash: "4v5mndkbz44v", name: "七日書｜數位雲端的我", label: "數位雲端的我", count: 37, year: 2026, month: 2 },
+  { shortHash: "nqbeo3cdn585", name: "七日書｜衣櫥裡的自我", label: "衣櫥裡的自我", count: 20, year: 2026, month: 1 },
+  { shortHash: "ox9fmcz6zxxj", name: "七日書｜說聲告別，走向新的自己", label: "說聲告別，走向新的自己", count: 34, year: 2025, month: 12 },
+  { shortHash: "3uskpxsbzmz5", name: "七日書｜重構生活", label: "重構生活", count: 52, year: 2025, month: 11 },
+  { shortHash: "owt3jxplay6z", name: "七日書｜曖昧時刻", label: "曖昧時刻", count: 24, year: 2025, month: 10 },
+  { shortHash: "rt04oolqbexh", name: "兩廳院藝術出走：給自己的情書「三日書」徵文活動（九月：標記回憶的位置與意義｜客座作家：楊翠）", label: "兩廳院藝術出走：給自己的情書…", count: 20, year: 2025, month: 9 },
+  { shortHash: "5zhf2bpty274", name: "兩廳院藝術出走：給自己的情書「三日書」徵文活動（八月：關於人生，我想說的是｜客座作家：郭強生）", label: "兩廳院藝術出走：給自己的情書…", count: 26, year: 2025, month: 8 },
+  { shortHash: "h2ya9xxjubd2", name: "三日書｜被過度期待的人：燃燒自我的故事", label: "三日書·被過度期待的人：燃燒…", count: 15, year: 2025, month: 7 },
+  { shortHash: "efkk0l9hcg96", name: "七日書｜What If 人生有如果", label: "What If 人生有如果", count: 37, year: 2025, month: 6 },
+  { shortHash: "26uhbm3uh6rg", name: "七日書一週年｜寫作，給人生的靈魂提問", label: "七日書一週年｜寫作，給人生的…", count: 37, year: 2025, month: 5 },
+  { shortHash: "4nqnizsygmcn", name: "七日書：書寫地方", label: "書寫地方", count: 46, year: 2025, month: 4 },
+  { shortHash: "f7rpyecg32mg", name: "七日書：我的家庭故事", label: "我的家庭故事", count: 17, year: 2025, month: 3 },
+  { shortHash: "x4rv6dwgk68o", name: "七日書：人間鬼故事", label: "人間鬼故事", count: 39, year: 2025, month: 2 },
+  { shortHash: "eqsfuc3qph6u", name: "七日書：我的（不）完美人生", label: "我的（不）完美人生", count: 15, year: 2025, month: 1 },
+  { shortHash: "8t5liudbtpup", name: "七日書：物的體系，我的物件錄", label: "物的體系，我的物件錄", count: 13, year: 2024, month: 12 },
+  { shortHash: "scx3f16y37v6", name: "七日書：島嶼精神，另類人生", label: "島嶼精神，另類人生", count: 17, year: 2024, month: 11 },
 ];
 
 export const featuredArticles: FeaturedArticle[] = [
