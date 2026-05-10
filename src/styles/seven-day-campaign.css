@@ -3807,7 +3807,9 @@
 
 .book-toc-list li {
   display: grid;
-  grid-template-columns: 12mm 1fr auto;
+  /* minmax(0, 1fr) 讓中文長標題能正常斷字斷行；不然標題欄會被擠到 1 個字寬，
+   * 結果每個字都換一行 */
+  grid-template-columns: 12mm minmax(0, 1fr) auto;
   gap: 6mm;
   align-items: baseline;
   padding: 4mm 0;
@@ -3945,7 +3947,9 @@
   font-size: 11pt;
   font-weight: 400;
   line-height: 1.78;
-  text-align: justify;
+  /* 不能用 justify：paged.js 對 split 元素會自動加 text-align-last: justify，
+   * 中文段落最後一行會被拉到滿行寬，字距變得超寬超醜。改 left 解決。 */
+  text-align: left;
 }
 
 .book-article-body p {
@@ -4121,7 +4125,11 @@
   min-height: 0 !important;
   height: auto !important;
   margin: 0 !important;
-  padding: 0 !important;
+  /* 用個別 padding-* 而非短手 padding，這樣 JS 可以動態加 padding-top
+   * 把 divider 上下置中（短手會 reset all 4 邊吃掉動態值） */
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
   border: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
@@ -4129,6 +4137,9 @@
   overflow: visible !important;
   page-break-after: always;
   break-after: page;
+}
+.pagedjs_page_content .book-page:not(.book-page--divider) {
+  padding-top: 0 !important;
 }
 
 /* 封面 / 分隔 / 統計 / 目錄 / 封底 在 paged.js 內想要佔滿整個版心 */
