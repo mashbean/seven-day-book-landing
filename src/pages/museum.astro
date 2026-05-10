@@ -593,13 +593,18 @@ const LECTURES_INITIAL = 6;
         <div class="book-modal__chrome">
           <div class="book-modal__chrome-left">
             <h2 id="book-modal-title">你的七日書小書</h2>
-            <p>翻翻看下方預覽，按下「下載 PDF」就能存成一本 A5 小書。</p>
+            <p>翻翻看下方預覽 — 想印實體就按「下載 PDF」（A5 開本），<br/>想在手機上讀就按「下載 EPUB」（自由縮放、Apple Books / Kobo 都能開）。</p>
           </div>
           <div class="book-modal__chrome-actions">
             <button
               class="button button--quiet"
               type="button"
               data-close-book>關閉</button
+            >
+            <button
+              class="button button--soft"
+              type="button"
+              data-epub-book>下載 EPUB ↓</button
             >
             <button
               class="button button--primary"
@@ -625,6 +630,7 @@ const LECTURES_INITIAL = 6;
     const bookModal = document.getElementById("book-modal");
     const bookPagesEl = document.getElementById("book-modal-pages");
     const printBtn = document.querySelector("[data-print-book]");
+    const epubBtn = document.querySelector("[data-epub-book]");
     const closeBtn = document.querySelector("[data-close-book]");
 
     const MATTERS_GQL = "https://server.matters.town/graphql";
@@ -696,6 +702,10 @@ const LECTURES_INITIAL = 6;
 
     const stripInlineHtml = (s) =>
       String(s)
+        // 拔掉 XML 不允許的 ASCII control chars (U+0001-08, 0B-0C, 0E-1F)。
+        // Matters editor 偶爾會留 U+0001 在 figure 後的空行，會讓 EPUB
+        // 的 XHTML parser 整個 fail。
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
         // <br class="smart"> / <br/> / <br> → 統一 \n
         .replace(/<br\s*[^>]*>/gi, "\n")
         // 其他 inline tag 一律拔掉，保留純文字
@@ -1293,6 +1303,387 @@ const LECTURES_INITIAL = 6;
     // Safari 的 popup blocker 視為「非使用者觸發」而靜默吃掉。
     printBtn?.addEventListener("click", () => {
       window.print();
+    });
+
+    // ── EPUB 3 builder: 純 client-side zip，不靠 paged.js（reflowable
+    //    閱讀，Apple Books / Kobo / Calibre 都能開）─────────────────
+    const ensureJSZip = (() => {
+      let p = null;
+      return () => {
+        if (window.JSZip) return Promise.resolve();
+        if (p) return p;
+        p = new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "https://unpkg.com/jszip@3.10.1/dist/jszip.min.js";
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error("JSZip 載入失敗"));
+          document.head.appendChild(s);
+        });
+        return p;
+      };
+    })();
+
+    const escapeXml = (s) =>
+      String(s ?? "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c])
+      );
+
+    // EPUB 中文書版心 CSS — reflowable 給閱讀器自己處理斷頁，不需要 @page
+    const BOOK_EPUB_CSS = `
+@charset "UTF-8";
+body {
+  font-family: "PingFang TC", "Noto Serif TC", "Source Han Serif TC", serif;
+  line-height: 1.85;
+  margin: 0;
+  padding: 1em;
+  color: #2b2926;
+}
+h1, h2, h3 {
+  font-weight: 600;
+  margin: 1.2em 0 0.5em;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+h1 { font-size: 1.6em; text-align: center; margin-top: 2em; }
+h2 { font-size: 1.3em; }
+h3 { font-size: 1.1em; }
+p {
+  margin: 0 0 0.4em;
+  text-indent: 2em;
+  text-align: left;
+}
+p:first-child, h1 + p, h2 + p, h3 + p, figure + p, .eyebrow + p, .eyebrow + h1, .eyebrow + h2 { text-indent: 0; }
+.eyebrow {
+  display: block;
+  color: #666;
+  font-size: 0.9em;
+  letter-spacing: 0.06em;
+  text-indent: 0;
+  margin: 0 0 0.4em;
+}
+.center { text-align: center; text-indent: 0; }
+.handle, .date, .meta { text-align: center; color: #666; text-indent: 0; }
+blockquote {
+  margin: 0.6em 1.5em;
+  padding: 0.4em 0.8em;
+  border-left: 3px solid #c9c4be;
+  color: #555;
+}
+blockquote p { text-indent: 0; }
+section.cover { text-align: center; margin-top: 4em; }
+section.cover h1 { font-size: 2em; }
+section.divider { text-align: center; margin-top: 3em; page-break-before: always; break-before: page; }
+section.divider h2 { font-size: 1.5em; margin: 0.6em 0; }
+section.closing { text-align: center; margin-top: 3em; page-break-before: always; break-before: page; }
+.toc-item { margin: 0.3em 0; }
+.toc-num { display: inline-block; width: 2.5em; color: #045898; font-weight: 600; }
+`;
+
+    const xhtml = (body, title) =>
+      `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      `<!DOCTYPE html>\n` +
+      `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="zh-Hant">\n` +
+      `<head>\n` +
+      `  <meta charset="UTF-8"/>\n` +
+      `  <title>${escapeXml(title || "")}</title>\n` +
+      `  <link rel="stylesheet" type="text/css" href="styles/book.css"/>\n` +
+      `</head>\n` +
+      `<body>\n${body}\n</body>\n</html>\n`;
+
+    // markdown / Matters HTML → EPUB 友善 XHTML
+    // 跟 PDF 用的 mdToHtml 邏輯類似，但保留 figure 圖片（EPUB reader 處理得很好），
+    // 同時把所有 inline HTML tag 收乾淨，避免 XHTML parse error
+    const mdToEpubXhtml = (md) => {
+      if (!md) return "";
+      const { text, figures } = extractFigures(md);
+      const blocks = text.replace(/FIG(\d+)/g, "\n\nFIG$1\n\n").split(/\n\s*\n+/);
+      return blocks
+        .map((blk) => {
+          const t = blk.trim();
+          if (!t) return "";
+          const figMatch = t.match(/^FIG(\d+)$/);
+          if (figMatch) {
+            const f = figures[Number(figMatch[1])];
+            if (!f) return "";
+            // EPUB 閱讀器普遍允許外連 https://，但保險起見只放 alt + caption
+            const cap = f.caption ? `<figcaption>${escapeXml(f.caption)}</figcaption>` : "";
+            return `<figure><img src="${escapeXml(f.src)}" alt="${escapeXml(f.alt)}"/>${cap}</figure>`;
+          }
+          const h = t.match(/^(#{1,6})\s+(.+)$/);
+          if (h) {
+            const txt = escapeXml(stripInlineHtml(h[2]).replace(/[*_`]/g, "").trim());
+            if (!txt) return "";
+            return `<h3>${txt}</h3>`;
+          }
+          if (t.startsWith("> ")) {
+            const q = escapeXml(
+              stripInlineHtml(t.slice(2))
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+                .replace(/[*_`]/g, "")
+                .trim()
+            );
+            if (!q) return "";
+            return `<blockquote><p>${q}</p></blockquote>`;
+          }
+          const cleaned = stripInlineHtml(t)
+            .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+            .replace(/\*\*([^*]+)\*\*/g, "$1")
+            .replace(/\*([^*]+)\*/g, "$1")
+            .replace(/`([^`]+)`/g, "$1")
+            .trim();
+          if (!cleaned) return "";
+          const escaped = escapeXml(cleaned).replace(/\n+/g, "<br/>");
+          return `<p>${escaped}</p>`;
+        })
+        .filter(Boolean)
+        .join("\n");
+    };
+
+    const triggerDownload = (blob, filename) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    const buildEpub = async (journey) => {
+      await ensureJSZip();
+      const zip = new window.JSZip();
+      const { user, groups, totalArticles } = journey;
+      const today = new Date();
+      const dateStr = `${today.getFullYear()} 年 ${today.getMonth() + 1} 月 ${today.getDate()} 日`;
+      const bookTitle = `${user.displayName} 的七日書小書`;
+      const author = `@${user.userName}`;
+      const bookId = "urn:uuid:" + (crypto.randomUUID
+        ? crypto.randomUUID()
+        : Date.now() + "-" + Math.random().toString(36).slice(2));
+      const isoDate = today.toISOString().split(".")[0] + "Z";
+
+      // mimetype 必須第一個 + uncompressed (EPUB spec)
+      zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
+
+      // META-INF
+      zip.file(
+        "META-INF/container.xml",
+        `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n` +
+          `  <rootfiles>\n` +
+          `    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>\n` +
+          `  </rootfiles>\n` +
+          `</container>\n`
+      );
+
+      // styles
+      zip.file("OEBPS/styles/book.css", BOOK_EPUB_CSS);
+
+      // 收集 chapter 用 (id / href / title)
+      const chapters = [];
+
+      // cover
+      chapters.push({ id: "cover", href: "cover.xhtml", title: "封面" });
+      zip.file(
+        "OEBPS/cover.xhtml",
+        xhtml(
+          `<section class="cover">\n` +
+            `  <p class="eyebrow">Matters · 自由寫</p>\n` +
+            `  <h1>${escapeXml(bookTitle)}</h1>\n` +
+            `  <p class="handle">${escapeXml(author)}</p>\n` +
+            `  <p class="date">${escapeXml(dateStr)} 編製</p>\n` +
+            `</section>`,
+          bookTitle
+        )
+      );
+
+      // stats
+      const firstYear = groups.length
+        ? formatMonthLabel(groups[groups.length - 1].articles[0].createdAt).split(" 年")[0]
+        : "—";
+      chapters.push({ id: "stats", href: "stats.xhtml", title: "這幾年的書寫" });
+      zip.file(
+        "OEBPS/stats.xhtml",
+        xhtml(
+          `<section class="cover">\n` +
+            `  <p class="eyebrow">這幾年的書寫</p>\n` +
+            `  <h2 class="center">${groups.length} 期七日書 · ${totalArticles} 篇文章</h2>\n` +
+            `  <p class="meta">第一次參與：${escapeXml(firstYear)}</p>\n` +
+            `  <p class="meta">每一篇都是一個七天裡安靜的下午。</p>\n` +
+            `</section>`,
+          "這幾年的書寫"
+        )
+      );
+
+      // For each issue: divider + per-article xhtml
+      groups.forEach((g, i) => {
+        const idx = String(i + 1).padStart(2, "0");
+        const sortedArts = [...g.articles].sort(
+          (a, b) => +new Date(a.createdAt) - +new Date(b.createdAt)
+        );
+        const period = formatMonthLabel(sortedArts[0].createdAt);
+
+        // divider
+        const dividerId = `ch${idx}-divider`;
+        chapters.push({
+          id: dividerId,
+          href: `${dividerId}.xhtml`,
+          title: g.campaign.name,
+        });
+        zip.file(
+          `OEBPS/${dividerId}.xhtml`,
+          xhtml(
+            `<section class="divider">\n` +
+              `  <p class="eyebrow">第 ${idx} 站</p>\n` +
+              `  <p class="meta">${escapeXml(period)}</p>\n` +
+              `  <h2>${escapeXml(g.campaign.name)}</h2>\n` +
+              `  <p class="meta">在這期，你寫了 ${sortedArts.length} 篇</p>\n` +
+              `</section>`,
+            g.campaign.name
+          )
+        );
+
+        // articles
+        sortedArts.forEach((a, j) => {
+          const artId = `ch${idx}-art${String(j + 1).padStart(2, "0")}`;
+          const bodyHtml = a.contents?.markdown
+            ? mdToEpubXhtml(a.contents.markdown)
+            : `<p>${escapeXml(a.summary || "")}</p>`;
+          const dateLine = a.createdAt
+            ? `${a.createdAt.slice(0, 4)} 年 ${Number(a.createdAt.slice(5, 7))} 月 ${Number(a.createdAt.slice(8, 10))} 日`
+            : "";
+          chapters.push({ id: artId, href: `${artId}.xhtml`, title: a.title });
+          zip.file(
+            `OEBPS/${artId}.xhtml`,
+            xhtml(
+              `<section>\n` +
+                `  <p class="eyebrow">${escapeXml(period)} · ${escapeXml(g.campaign.name)}</p>\n` +
+                `  <h2>${escapeXml(a.title)}</h2>\n` +
+                bodyHtml +
+                `\n  <p class="meta">${escapeXml(dateLine)} · matters.town/a/${escapeXml(a.shortHash)}</p>\n` +
+                `</section>`,
+              a.title
+            )
+          );
+        });
+      });
+
+      // closing
+      chapters.push({ id: "closing", href: "closing.xhtml", title: "封底" });
+      zip.file(
+        "OEBPS/closing.xhtml",
+        xhtml(
+          `<section class="closing">\n` +
+            `  <p class="eyebrow">「下一個七天，繼續寫。」</p>\n` +
+            `  <h2 class="center">Matters 自由寫 × 七日書</h2>\n` +
+            `  <p class="meta">每月一期 · freewriting.matters.town</p>\n` +
+            `</section>`,
+          "封底"
+        )
+      );
+
+      // toc.xhtml (EPUB 3 nav)
+      const navList = chapters
+        .map((c) => `      <li><a href="${escapeXml(c.href)}">${escapeXml(c.title)}</a></li>`)
+        .join("\n");
+      zip.file(
+        "OEBPS/toc.xhtml",
+        xhtml(
+          `<nav epub:type="toc" id="toc">\n` +
+            `  <h1>目錄</h1>\n` +
+            `  <ol>\n${navList}\n  </ol>\n` +
+            `</nav>`,
+          "目錄"
+        )
+      );
+
+      // toc.ncx (legacy NCX, 給舊閱讀器)
+      const navPoints = chapters
+        .map(
+          (c, i) =>
+            `  <navPoint id="np-${c.id}" playOrder="${i + 1}">\n` +
+            `    <navLabel><text>${escapeXml(c.title)}</text></navLabel>\n` +
+            `    <content src="${escapeXml(c.href)}"/>\n` +
+            `  </navPoint>`
+        )
+        .join("\n");
+      zip.file(
+        "OEBPS/toc.ncx",
+        `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<ncx version="2005-1" xmlns="http://www.daisy.org/z3986/2005/ncx/">\n` +
+          `  <head>\n` +
+          `    <meta name="dtb:uid" content="${bookId}"/>\n` +
+          `    <meta name="dtb:depth" content="1"/>\n` +
+          `    <meta name="dtb:totalPageCount" content="0"/>\n` +
+          `    <meta name="dtb:maxPageNumber" content="0"/>\n` +
+          `  </head>\n` +
+          `  <docTitle><text>${escapeXml(bookTitle)}</text></docTitle>\n` +
+          `  <docAuthor><text>${escapeXml(author)}</text></docAuthor>\n` +
+          `  <navMap>\n${navPoints}\n  </navMap>\n` +
+          `</ncx>\n`
+      );
+
+      // content.opf
+      const manifestItems = chapters
+        .map(
+          (c) =>
+            `    <item id="${c.id}" href="${escapeXml(c.href)}" media-type="application/xhtml+xml"/>`
+        )
+        .join("\n");
+      const spineItems = chapters
+        .map((c) => `    <itemref idref="${c.id}"/>`)
+        .join("\n");
+      zip.file(
+        "OEBPS/content.opf",
+        `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid">\n` +
+          `  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">\n` +
+          `    <dc:identifier id="bookid">${escapeXml(bookId)}</dc:identifier>\n` +
+          `    <dc:title>${escapeXml(bookTitle)}</dc:title>\n` +
+          `    <dc:creator>${escapeXml(author)}</dc:creator>\n` +
+          `    <dc:language>zh-Hant</dc:language>\n` +
+          `    <dc:publisher>Matters · 自由寫</dc:publisher>\n` +
+          `    <meta property="dcterms:modified">${isoDate}</meta>\n` +
+          `  </metadata>\n` +
+          `  <manifest>\n` +
+          `    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>\n` +
+          `    <item id="nav" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>\n` +
+          `    <item id="css" href="styles/book.css" media-type="text/css"/>\n` +
+          `${manifestItems}\n` +
+          `  </manifest>\n` +
+          `  <spine toc="ncx">\n` +
+          `    <itemref idref="nav"/>\n` +
+          `${spineItems}\n` +
+          `  </spine>\n` +
+          `</package>\n`
+      );
+
+      return await zip.generateAsync({
+        type: "blob",
+        mimeType: "application/epub+zip",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 },
+      });
+    };
+
+    epubBtn?.addEventListener("click", async () => {
+      if (!lastJourney) return;
+      const orig = epubBtn.textContent;
+      epubBtn.disabled = true;
+      epubBtn.textContent = "打包中…";
+      try {
+        const blob = await buildEpub(lastJourney);
+        const fname = `${lastJourney.user.userName}-七日書小書.epub`;
+        triggerDownload(blob, fname);
+      } catch (e) {
+        console.error("EPUB 打包失敗", e);
+        alert("EPUB 打包失敗：" + (e.message || e));
+      } finally {
+        epubBtn.disabled = false;
+        epubBtn.textContent = orig;
+      }
     });
 
     const renderError = (msg) => {
