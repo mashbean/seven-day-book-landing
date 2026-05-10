@@ -22,6 +22,8 @@ import {
 
 // 預設只 show 12，使用者按 「展開更多」 +12
 const FEATURED_INITIAL = 12;
+// 馬拉松選手預設 show 3 行 (5 col × 3 row = 15)
+const MARATHONERS_INITIAL = 15;
 import "../styles/seven-day-campaign.css";
 import { withBase } from "../utils/paths";
 
@@ -56,20 +58,19 @@ const archiveThemes = [...allThemes].reverse();
       </a>
 
       <nav class="sitebar__nav" aria-label="頁面導覽">
+        <a href="#marathoners">名人堂</a>
         <a href="#my-journey">我的旅程</a>
-        <a href="#marathoners">馬拉松選手</a>
         <a href="#featured">歷年精選</a>
-        <a href={homeHref}>本期七日書</a>
-        <a href={partnersHref}>機構合作</a>
+        <a href={homeHref}>七日書介紹</a>
+        <a href={partnersHref}>合作洽談</a>
       </nav>
 
       <div class="sitebar__actions">
-        <a class="button button--ghost-on-dark" href={homeHref}>回到首頁</a>
         <a
           class="button button--soft"
           href={shared.joinHref}
           target="_blank"
-          rel="noopener">加入寫作</a
+          rel="noopener">加入本月寫作</a
         >
       </div>
     </header>
@@ -87,15 +88,114 @@ const archiveThemes = [...allThemes].reverse();
         </div>
       </section>
 
-      <!-- 博物館入口 banner：暗色框、放 freewrite 既有 dark accent 元素 -->
+      <!-- 博物館入口 banner：用 figma 既有「氣味博物館」cover (深紫色夜景) 為底圖 + 深色遮罩 -->
       <section class="museum-banner" aria-hidden="true">
         <div class="museum-banner__inner">
+          <div
+            class="museum-banner__bg"
+            style={`background-image: url('https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/prod/campaignCover/fb1bd2c2-754d-493b-9750-352ef7fe27b7.png/w=1920,h=600,fit=cover');`}
+            aria-hidden="true"
+          ></div>
+          <div class="museum-banner__overlay" aria-hidden="true"></div>
           <img class="museum-banner__scribble museum-banner__scribble--tr" src={withBase("images/freewrite/scribble-tr.svg")} alt="" />
           <div class="museum-banner__content">
-            <SevenDayBookLogo size={64} title="七日書" className="seven-day-book-logo--on-dark museum-banner__logo" />
+            <SevenDayBookLogo size={72} title="七日書" className="seven-day-book-logo--on-dark museum-banner__logo" />
             <p class="museum-banner__tagline">{archiveThemes.length} 期 · 24 個月 · 一座持續長大的書寫展廳</p>
           </div>
           <img class="museum-banner__scribble museum-banner__scribble--bl" src={withBase("images/freewrite/scribble-bl.svg")} alt="" />
+        </div>
+      </section>
+
+      <section
+        id="marathoners"
+        class="museum-marathoners"
+        aria-labelledby="marathoners-title"
+      >
+        <div class="museum-marathoners__inner">
+          <header class="museum-marathoners__head">
+            <p class="eyebrow">七日書馬拉松選手</p>
+            <h2 id="marathoners-title">這裡是七日書的名人堂。</h2>
+            <p>
+              他們幾乎參與了所有七日書，是最擅長長跑的文友。點頭像可以看那位文友的書寫旅程。
+            </p>
+            <p>
+              完成七天寫作，就可以擁有大滿貫徽章；這兩年以來，我們總共發出了
+              <strong>{totalGrandSlams.toLocaleString()}</strong> 枚大滿貫徽章。
+            </p>
+          </header>
+
+          <ol
+            class="marathoner-grid"
+            data-marathoner-grid
+            data-initial={MARATHONERS_INITIAL}
+          >
+            {
+              marathoners.map((m, idx) => {
+                const rankClass =
+                  idx < 3 ? "marathoner-card--gold" : idx < 10 ? "marathoner-card--silver" : "";
+                return (
+                  <li
+                    data-marathoner-item={idx}
+                    hidden={idx >= MARATHONERS_INITIAL}
+                  >
+                    <button
+                      type="button"
+                      class={`marathoner-card ${rankClass}`}
+                      data-marathoner-handle={m.userName}
+                      aria-label={`查看 ${m.displayName} 的書寫旅程`}
+                    >
+                      <span class="marathoner-card__rank">
+                        {String(idx + 1).padStart(2, "0")}
+                      </span>
+                      {m.grandSlams > 0 && (
+                        <span
+                          class="marathoner-card__badge"
+                          title={`拿到 ${m.grandSlams} 次大滿貫徽章`}
+                        >
+                          <GrandBadge size={26} />
+                          <span class="marathoner-card__badge-num">×{m.grandSlams}</span>
+                        </span>
+                      )}
+                      {m.avatar ? (
+                        <img
+                          class="marathoner-card__avatar"
+                          src={m.avatar}
+                          alt=""
+                          loading="lazy"
+                          referrerpolicy="no-referrer"
+                        />
+                      ) : (
+                        <span class="marathoner-card__avatar marathoner-card__avatar--empty" aria-hidden="true">
+                          {m.displayName.slice(0, 1)}
+                        </span>
+                      )}
+                      <span class="marathoner-card__name">{m.displayName}</span>
+                      <span class="marathoner-card__handle">@{m.userName}</span>
+                      <span class="marathoner-card__count">
+                        {m.totalArticles} <span>篇</span>
+                      </span>
+                      <span class="marathoner-card__sub">
+                        {m.campaignsParticipated} 期參與
+                      </span>
+                    </button>
+                  </li>
+                );
+              })
+            }
+          </ol>
+
+          <div class="theme-pager__more">
+            <button
+              class="button button--soft"
+              type="button"
+              data-marathoner-expand
+              aria-expanded="false"
+            >
+              <span data-marathoner-expand-label
+                >查看更多長跑選手 ↓</span
+              >
+            </button>
+          </div>
         </div>
       </section>
 
@@ -187,80 +287,6 @@ const archiveThemes = [...allThemes].reverse();
       </section>
 
       <section
-        id="marathoners"
-        class="museum-marathoners"
-        aria-labelledby="marathoners-title"
-      >
-        <div class="museum-marathoners__inner">
-          <header class="museum-marathoners__head">
-            <p class="eyebrow">七日書馬拉松選手</p>
-            <h2 id="marathoners-title">用大滿貫徽章與篇數，量出寫作的長距離。</h2>
-            <p>
-              排序依拿到的<strong>大滿貫徽章數</strong>（七日書 ≥ 7 篇 / 三日書 ≥ 3
-              篇即達成），同分比實際發文數。
-              {eventCount} 期累計 {totalAuthorsWithArticles.toLocaleString()} 位作者實際發文，
-              共獲 {totalGrandSlams.toLocaleString()} 枚大滿貫徽章。
-              點頭像可以看那位文友的書寫旅程。
-            </p>
-          </header>
-
-          <ol class="marathoner-grid">
-            {
-              marathoners.map((m, idx) => {
-                const rankClass =
-                  idx < 3 ? "marathoner-card--gold" : idx < 10 ? "marathoner-card--silver" : "";
-                return (
-                  <li>
-                    <button
-                      type="button"
-                      class={`marathoner-card ${rankClass}`}
-                      data-marathoner-handle={m.userName}
-                      aria-label={`查看 ${m.displayName} 的書寫旅程`}
-                    >
-                      <span class="marathoner-card__rank">
-                        {String(idx + 1).padStart(2, "0")}
-                      </span>
-                      {m.grandSlams > 0 && (
-                        <span
-                          class="marathoner-card__badge"
-                          title={`拿到 ${m.grandSlams} 次大滿貫徽章`}
-                        >
-                          <GrandBadge size={26} />
-                          <span class="marathoner-card__badge-num">×{m.grandSlams}</span>
-                        </span>
-                      )}
-                      {m.avatar ? (
-                        <img
-                          class="marathoner-card__avatar"
-                          src={m.avatar}
-                          alt=""
-                          loading="lazy"
-                          referrerpolicy="no-referrer"
-                        />
-                      ) : (
-                        <span class="marathoner-card__avatar marathoner-card__avatar--empty" aria-hidden="true">
-                          {m.displayName.slice(0, 1)}
-                        </span>
-                      )}
-                      <span class="marathoner-card__name">{m.displayName}</span>
-                      <span class="marathoner-card__handle">@{m.userName}</span>
-                      <span class="marathoner-card__count">
-                        {m.totalArticles} <span>篇</span>
-                      </span>
-                      <span class="marathoner-card__sub">
-                        {m.campaignsParticipated} 期參與
-                      </span>
-                    </button>
-                  </li>
-                );
-              })
-            }
-          </ol>
-
-        </div>
-      </section>
-
-      <section
         id="featured"
         class="museum-featured"
         aria-labelledby="featured-title"
@@ -293,14 +319,6 @@ const archiveThemes = [...allThemes].reverse();
                 data-featured-chips
                 aria-label="按時間軸切換期數"
               >
-                <button
-                  type="button"
-                  class="featured-tl-chip featured-tl-chip--all featured-tl-chip--active"
-                  data-chip-target="all"
-                >
-                  <span class="featured-tl-chip__label">全部</span>
-                  <span class="featured-tl-chip__count">{featuredCount} 篇</span>
-                </button>
                 {
                   grouped.map((g) => (
                     <div class="featured-tl-year">
@@ -386,7 +404,7 @@ const archiveThemes = [...allThemes].reverse();
             }
           </div>
 
-          <p class="theme-pager__more">
+          <div class="theme-pager__more">
             <button
               class="button button--soft"
               type="button"
@@ -395,7 +413,7 @@ const archiveThemes = [...allThemes].reverse();
             >
               <span data-featured-more-label>展開更多 12 篇 ↓</span>
             </button>
-          </p>
+          </div>
         </div>
       </section>
 
@@ -429,36 +447,44 @@ const archiveThemes = [...allThemes].reverse();
       </span>
     </footer>
 
-    <!-- 一鍵製作專屬七日書小書 modal — 印 PDF 用 window.print() + @page A5 portrait -->
-    <dialog
+    <!-- 一鍵製作專屬七日書小書 overlay — 印 PDF 用 window.print() + @page A5 portrait
+         注意：用 <div role="dialog">（不是 <dialog>），因為 <dialog> 走 browser top-layer，
+         Chrome / Safari 列印時會把整個 top-layer 當一頁渲染導致空白頁。 -->
+    <div
       class="book-modal"
       id="book-modal"
+      role="dialog"
+      aria-modal="true"
       aria-labelledby="book-modal-title"
+      hidden
     >
-      <div class="book-modal__chrome">
-        <div class="book-modal__chrome-left">
-          <h2 id="book-modal-title">你的七日書小書</h2>
-          <p>翻翻看下方預覽，按下「下載 PDF」就能存成一本 A5 小書。</p>
+      <div class="book-modal__backdrop" data-close-book></div>
+      <div class="book-modal__panel">
+        <div class="book-modal__chrome">
+          <div class="book-modal__chrome-left">
+            <h2 id="book-modal-title">你的七日書小書</h2>
+            <p>翻翻看下方預覽，按下「下載 PDF」就能存成一本 A5 小書。</p>
+          </div>
+          <div class="book-modal__chrome-actions">
+            <button
+              class="button button--quiet"
+              type="button"
+              data-close-book>關閉</button
+            >
+            <button
+              class="button button--primary"
+              type="button"
+              data-print-book>下載 PDF →</button
+            >
+          </div>
         </div>
-        <div class="book-modal__chrome-actions">
-          <button
-            class="button button--quiet"
-            type="button"
-            data-close-book>關閉</button
-          >
-          <button
-            class="button button--primary"
-            type="button"
-            data-print-book>下載 PDF →</button
-          >
+        <div class="book-modal__pages" id="book-modal-pages">
+          <p class="book-modal__placeholder">
+            先在上方輸入帳號查找旅程，再回來這裡。
+          </p>
         </div>
       </div>
-      <div class="book-modal__pages" id="book-modal-pages">
-        <p class="book-modal__placeholder">
-          先在上方輸入帳號查找旅程，再回來這裡。
-        </p>
-      </div>
-    </dialog>
+    </div>
   </div>
 
   <script is:inline>
@@ -509,22 +535,74 @@ const archiveThemes = [...allThemes].reverse();
       return json.data.user;
     };
 
-    // 完整 markdown → HTML：段落 / 標題 / 圖片 / 引言 / 行內連結文字
-    // 不做 syntax highlighting、不做 list（matters 文章很少用 list 語法）
+    // Matters 的 contents.markdown 其實是「markdown + raw HTML」混合：
+    //   - 圖片走 <figure class="image"><img src="..."><figcaption>...</figcaption></figure>
+    //   - 空段落走 <p><br class="smart"></p>
+    //   - <br class="smart"> 也會直接出現在段落中
+    // 所以這裡先抽出所有 <figure class="image">、再把剩下的 HTML / markdown 標籤剝乾淨，
+    // 切段落後重新組裝成乾淨的 book HTML。
+    const extractFigures = (raw) => {
+      // 把 <figure class="image"...><img src="X" ...><figcaption>...</figcaption></figure>
+      // 換成 placeholder N + 收集進 figures[]
+      const figures = [];
+      const out = raw.replace(
+        /<figure[^>]*class="[^"]*\bimage\b[^"]*"[^>]*>([\s\S]*?)<\/figure>/gi,
+        (_m, inner) => {
+          const imgMatch = inner.match(/<img[^>]*\bsrc=["']([^"']+)["'][^>]*>/i);
+          if (!imgMatch) return ""; // 沒 src 就丟掉
+          const altMatch = inner.match(/<img[^>]*\balt=["']([^"']*)["']/i);
+          const capMatch = inner.match(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i);
+          const idx = figures.length;
+          figures.push({
+            src: imgMatch[1],
+            alt: altMatch ? altMatch[1] : "",
+            caption: capMatch ? capMatch[1].replace(/<[^>]+>/g, "").trim() : "",
+          });
+          return `FIG${idx}`;
+        },
+      );
+      return { text: out, figures };
+    };
+
+    const stripInlineHtml = (s) =>
+      String(s)
+        // <br class="smart"> / <br/> / <br> → 統一 \n
+        .replace(/<br\s*[^>]*>/gi, "\n")
+        // 其他 inline tag 一律拔掉，保留純文字
+        .replace(/<\/?(?:span|em|strong|b|i|u|a|code|small|sub|sup|mark|ins|del|s)[^>]*>/gi, "")
+        // 殘留所有未識別 tag 也拔掉（不要把 raw <div> 字串塞給使用者）
+        .replace(/<\/?[a-z][^>]*>/gi, "");
+
+    // 完整 markdown / HTML 混合 → 乾淨 HTML：段落 / 標題 / 圖片 / 引言
     const mdToHtml = (md) => {
       if (!md) return "";
-      return md
-        .split(/\n\s*\n+/)
+      const { text, figures } = extractFigures(md);
+      // 段落切分：以兩個換行為界，但保留圖片 placeholder 為獨立段落
+      const blocks = text
+        .replace(/FIG(\d+)/g, "\n\nFIG$1\n\n")
+        .split(/\n\s*\n+/);
+      const html = blocks
         .map((blk) => {
           const t = blk.trim();
           if (!t) return "";
+          // 圖片 placeholder
+          const figMatch = t.match(/^FIG(\d+)$/);
+          if (figMatch) {
+            const f = figures[Number(figMatch[1])];
+            if (!f) return "";
+            const cap = f.caption
+              ? `<figcaption>${escapeHtml(f.caption)}</figcaption>`
+              : "";
+            return `<figure class="book-article-fig"><img src="${escapeHtml(f.src)}" alt="${escapeHtml(f.alt)}" loading="lazy" />${cap}</figure>`;
+          }
           // Heading（# / ## / ### → 統一渲染 h3 級）
           const h = t.match(/^(#{1,6})\s+(.+)$/);
           if (h) {
-            const txt = escapeHtml(h[2].replace(/[*_`]/g, ""));
+            const txt = escapeHtml(stripInlineHtml(h[2]).replace(/[*_`]/g, "").trim());
+            if (!txt) return "";
             return `<h3>${txt}</h3>`;
           }
-          // Image only block
+          // Image-only markdown block
           const img = t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
           if (img) {
             return `<figure class="book-article-fig"><img src="${escapeHtml(img[2])}" alt="${escapeHtml(img[1])}" loading="lazy" /></figure>`;
@@ -532,22 +610,30 @@ const archiveThemes = [...allThemes].reverse();
           // Block quote
           if (t.startsWith("> ")) {
             const q = escapeHtml(
-              t.slice(2).replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/[*_`]/g, ""),
+              stripInlineHtml(t.slice(2))
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+                .replace(/[*_`]/g, "")
+                .trim(),
             );
+            if (!q) return "";
             return `<blockquote>${q}</blockquote>`;
           }
-          // Paragraph：strip 內聯 images、把 links 換成純文字、去粗體斜體 markup
-          const cleaned = t
+          // Paragraph：先剝 HTML、再去 markdown
+          const cleaned = stripInlineHtml(t)
             .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
             .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
             .replace(/\*\*([^*]+)\*\*/g, "$1")
             .replace(/\*([^*]+)\*/g, "$1")
-            .replace(/`([^`]+)`/g, "$1");
-          if (!cleaned.trim()) return "";
-          return `<p>${escapeHtml(cleaned)}</p>`;
+            .replace(/`([^`]+)`/g, "$1")
+            .trim();
+          if (!cleaned) return "";
+          // 段落內手動換行 → <br/>
+          const escaped = escapeHtml(cleaned).replace(/\n+/g, "<br/>");
+          return `<p>${escaped}</p>`;
         })
         .filter(Boolean)
         .join("");
+      return html;
     };
 
     const groupByCampaign = (articles) => {
@@ -694,6 +780,7 @@ const archiveThemes = [...allThemes].reverse();
         : '—';
       const stats = `
         <article class="book-page book-page--stats">
+          <img class="book-scribble book-scribble--tr" src="${SCRIBBLE_TR}" alt="" />
           <p class="book-stats-eyebrow">這幾年的書寫</p>
           <div class="book-stats-grid">
             <div><strong>${groups.length}</strong><span>期七日書</span></div>
@@ -701,6 +788,7 @@ const archiveThemes = [...allThemes].reverse();
             <div><strong>${firstYear}</strong><span>第一次參與</span></div>
           </div>
           <p class="book-stats-tagline">每一篇都是一個七天裡安靜的下午。</p>
+          <img class="book-scribble book-scribble--bl" src="${SCRIBBLE_BL}" alt="" />
         </article>`;
 
       // ── TOC page ──────────────────────────────────────────
@@ -712,9 +800,11 @@ const archiveThemes = [...allThemes].reverse();
         }).join("");
       const toc = `
         <article class="book-page book-page--toc">
+          <img class="book-scribble book-scribble--tr" src="${SCRIBBLE_TR}" alt="" />
           <p class="book-page-eyebrow">目錄</p>
           <h2 class="book-page-h2">這本書收錄的 ${groups.length} 期</h2>
           <ol class="book-toc-list">${tocItems}</ol>
+          <img class="book-cover-logo book-toc-logo" src="${SDB_LOGO_SRC}" alt="七日書" />
         </article>`;
 
       // ── Per-issue: divider page + per-article pages ────────
@@ -786,12 +876,27 @@ const archiveThemes = [...allThemes].reverse();
     const openBook = () => {
       if (!lastJourney) return;
       bookPagesEl.innerHTML = buildBookHtml(lastJourney);
-      if (bookModal && typeof bookModal.showModal === "function") {
-        bookModal.showModal();
-      }
+      if (!bookModal) return;
+      bookModal.removeAttribute("hidden");
+      document.body.classList.add("book-open");
+      // 鎖卷軸，讓背景不會跟著滾
+      document.body.style.overflow = "hidden";
+    };
+    const closeBook = () => {
+      if (!bookModal) return;
+      bookModal.setAttribute("hidden", "");
+      document.body.classList.remove("book-open");
+      document.body.style.overflow = "";
     };
 
-    closeBtn?.addEventListener("click", () => bookModal?.close());
+    document.querySelectorAll("[data-close-book]").forEach((el) => {
+      el.addEventListener("click", closeBook);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && bookModal && !bookModal.hasAttribute("hidden")) {
+        closeBook();
+      }
+    });
     printBtn?.addEventListener("click", () => window.print());
 
     const renderError = (msg) => {
@@ -836,6 +941,38 @@ const archiveThemes = [...allThemes].reverse();
       });
     });
 
+    // ── 馬拉松選手：查看更多 / 收合 ─────────────────────────
+    (() => {
+      const grid = document.querySelector("[data-marathoner-grid]");
+      const btn = document.querySelector("[data-marathoner-expand]");
+      const label = document.querySelector("[data-marathoner-expand-label]");
+      if (!grid || !btn || !label) return;
+      const initial = Number(grid.getAttribute("data-initial") || "15");
+      const items = Array.from(grid.querySelectorAll("[data-marathoner-item]"));
+      const hiddenCount = items.length - initial;
+      if (hiddenCount <= 0) {
+        btn.setAttribute("hidden", "");
+        return;
+      }
+      label.textContent = `查看更多長跑選手（還有 ${hiddenCount} 位） ↓`;
+      let expanded = false;
+      btn.addEventListener("click", () => {
+        expanded = !expanded;
+        items.forEach((li, idx) => {
+          if (idx < initial) return;
+          if (expanded) li.removeAttribute("hidden");
+          else li.setAttribute("hidden", "");
+        });
+        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        label.textContent = expanded
+          ? "收合 ↑"
+          : `查看更多長跑選手（還有 ${hiddenCount} 位） ↓`;
+        if (!expanded) {
+          grid.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    })();
+
     // ── 歷年精選文章：chip filter + show-more ───────────────────
     (() => {
       const grid = document.querySelector("[data-featured-grid]");
@@ -872,11 +1009,18 @@ const archiveThemes = [...allThemes].reverse();
 
       chipsRoot.querySelectorAll("[data-chip-target]").forEach((chip) => {
         chip.addEventListener("click", () => {
-          chipsRoot
-            .querySelectorAll("[data-chip-target]")
-            .forEach((c) => c.classList.remove("featured-chip--active"));
-          chip.classList.add("featured-chip--active");
-          activeFilter = chip.getAttribute("data-chip-target") || "all";
+          const target = chip.getAttribute("data-chip-target") || "all";
+          // 點到目前已選中的 chip → 視為取消篩選，回到「全部」
+          if (chip.classList.contains("featured-chip--active")) {
+            chip.classList.remove("featured-chip--active");
+            activeFilter = "all";
+          } else {
+            chipsRoot
+              .querySelectorAll("[data-chip-target]")
+              .forEach((c) => c.classList.remove("featured-chip--active"));
+            chip.classList.add("featured-chip--active");
+            activeFilter = target;
+          }
           visibleCount = initial; // reset pagination when changing filter
           apply();
           grid.scrollIntoView({ behavior: "smooth", block: "start" });

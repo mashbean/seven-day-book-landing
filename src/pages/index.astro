@@ -3,12 +3,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import GrandBadge from "../components/GrandBadge.astro";
 import MattersWordmark from "../components/MattersWordmark.astro";
 import SevenDayBookLogo from "../components/SevenDayBookLogo.astro";
-import WritingCardGrid from "../components/WritingCardGrid.astro";
 import {
   audienceFaq,
   audiencePage,
   contactEmail,
-  latestArticles,
   lectures,
   milestones,
   pastThemes,
@@ -23,20 +21,17 @@ const assetSrc = (src?: string) => {
   if (!src) return "";
   return src.startsWith("http") ? src : withBase(src);
 };
-const promptStateLabel: Record<string, string> = {
-  past: "已開放",
-  today: "今日題目",
-  locked: "即將開放",
-};
+// 永久性 hero banner — 不綁本月活動，用 freewrite 自由寫的氣味博物館主視覺
+const HERO_BANNER_SRC =
+  "https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/prod/campaignCover/fb1bd2c2-754d-493b-9750-352ef7fe27b7.png/w=1920,h=600,fit=cover";
 const nav = [
-  { href: "#current", label: "本月主題" },
-  { href: "#articles", label: "本期精選" },
-  { href: "#passport", label: "我的足跡" },
+  { href: archiveHref, label: "博物館" },
   { href: "#badge", label: "大滿貫" },
   { href: "#themes", label: "過去主題" },
   { href: "#lectures", label: "名家講座" },
   { href: "#milestones", label: "歷年里程" },
   { href: "#faq", label: "FAQ" },
+  { href: partnersHref, label: "合作洽談" },
 ];
 const marqueeAvatars = [
   ...shared.avatarWall.slice(0, 22),
@@ -89,7 +84,7 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
       <section class="hero hero--stacked" aria-labelledby="hero-title">
         <div class="hero__banner" aria-hidden="true">
           <img
-            src={assetSrc(audiencePage.currentIssue.cover)}
+            src={HERO_BANNER_SRC}
             alt=""
             loading="eager"
           />
@@ -98,18 +93,15 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
           <p class="eyebrow">{audiencePage.hero.eyebrow}</p>
           <h1 id="hero-title">{audiencePage.hero.headline}</h1>
           <p class="hero__lead">{audiencePage.hero.lead}</p>
-          <p class="hero__live" aria-label="本期狀態">
-            2026 年 5 月 七日書 ·
-            <strong>{audiencePage.currentIssue.title}</strong>
-            <span class="hero__live-dot" aria-hidden="true"></span>
-            <span class="hero__live-status">現正進行中</span>
-          </p>
           <div class="hero__actions">
+            <a class="button button--primary" href={archiveHref}
+              >走進七日書博物館 →</a
+            >
             <a
-              class="button button--primary"
+              class="button button--soft"
               href={shared.joinHref}
               target="_blank"
-              rel="noopener">加入寫作</a
+              rel="noopener">加入本月寫作</a
             >
             <a class="button button--quiet" href={partnersHref}>洽談合作</a>
           </div>
@@ -164,102 +156,26 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
       </section>
 
       <section
-        id="current"
+        id="museum-promo"
         class="section section--soft"
-        aria-labelledby="current-title"
+        aria-labelledby="museum-promo-title"
       >
         <div class="section__inner">
           <header class="section__header">
-            <p class="eyebrow">本月主題</p>
-            <h2 id="current-title">
-              {audiencePage.currentIssue.title}：七道題目，一天打開一扇門。
-            </h2>
+            <p class="eyebrow">想看現在 / 想看過去</p>
+            <h2 id="museum-promo-title">所有期數，都在七日書博物館。</h2>
             <p>
-              {
-                audiencePage.currentIssue.period
-              } · {audiencePage.currentIssue.summary}
+              本月正在進行的題目、24 期歷來主題、{
+                audiencePage.stats[1]?.value ?? "3,200+"
+              } 位文友的足跡 ——
+              都收進博物館，點任何一張主視覺都能進到那場活動頁。
             </p>
           </header>
 
-          <ol class="day-unlock-strip day-unlock-strip--full" aria-label="本期七道題目">
-            {
-              audiencePage.currentIssue.prompts.map((prompt) => (
-                <li
-                  class={`day-unlock-card day-unlock-card--${prompt.state}`}
-                >
-                  <div class="day-unlock-card__top">
-                    <span>{prompt.date}</span>
-                    <span>{promptStateLabel[prompt.state] ?? "題目"}</span>
-                  </div>
-                  <span class="day-unlock-card__day">{prompt.day}</span>
-                  <h3>{prompt.title}</h3>
-                  <p>{prompt.prompt}</p>
-                </li>
-              ))
-            }
-          </ol>
-        </div>
-      </section>
-
-      <section
-        id="articles"
-        class="section section--paper"
-        aria-labelledby="articles-title"
-      >
-        <div class="section__inner">
-          <header class="section__header">
-            <p class="eyebrow">本期精選</p>
-            <h2 id="articles-title">{audiencePage.articlesHeading}</h2>
-            <p>{audiencePage.articlesNote}</p>
-          </header>
-
-          <WritingCardGrid articles={latestArticles} />
-        </div>
-      </section>
-
-      <section
-        id="passport"
-        class="section section--soft"
-        aria-labelledby="passport-title"
-      >
-        <div class="section__inner">
-          <header class="section__header">
-            <p class="eyebrow">個人足跡</p>
-            <h2 id="passport-title">看看你在七日書留下的書寫旅程。</h2>
-            <p>
-              輸入你在 Matters 的帳號（例如 <code>mashbean</code>），看你曾在哪幾期參與、留下了哪些文字。
-              所有資料來自 Matters 公開 API，不保存搜尋紀錄、不需要登入。
-            </p>
-          </header>
-
-          <form class="passport-search" id="passport-search" novalidate>
-            <label class="passport-search__field">
-              <span class="passport-search__prefix" aria-hidden="true">@</span>
-              <input
-                type="text"
-                name="handle"
-                id="passport-handle"
-                placeholder="你的 Matters 帳號"
-                autocomplete="off"
-                spellcheck="false"
-                inputmode="text"
-                required
-              />
-            </label>
-            <button class="button button--primary" type="submit">
-              查找書寫足跡 →
-            </button>
-          </form>
-
-          <div
-            class="passport-result"
-            id="passport-result"
-            role="status"
-            aria-live="polite"
-          >
-            <p class="passport-hint">
-              提示：你的帳號就是 Matters 個人頁網址 <code>matters.town/@___</code> 後面那段。
-            </p>
+          <div class="theme-pager__more" style="margin-top: 32px;">
+            <a class="button button--primary" href={archiveHref}
+              >走進七日書博物館 →</a
+            >
           </div>
         </div>
       </section>
@@ -355,11 +271,11 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
               }
             </nav>
 
-            <p class="theme-pager__more">
+            <div class="theme-pager__more">
               <a class="button button--quiet" href={archiveHref}
                 >看完整七日書歷來主題 →</a
               >
-            </p>
+            </div>
           </div>
         </div>
       </section>
@@ -430,7 +346,7 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
               })
             }
           </div>
-          <p class="theme-pager__more">
+          <div class="theme-pager__more">
             <button
               class="button button--quiet"
               type="button"
@@ -441,7 +357,7 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
                 >展開更多 {lectures.length - 6} 位講者 ↓</span
               >
             </button>
-          </p>
+          </div>
         </div>
       </section>
 
@@ -525,11 +441,8 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
               >
                 {audiencePage.cta.button}
               </button>
-              <a
-                class="button button--quiet"
-                href={shared.joinHref}
-                target="_blank"
-                rel="noopener">直接加入本期</a
+              <a class="button button--quiet" href={archiveHref}
+                >走進博物館看歷年作品</a
               >
             </div>
           </div>
@@ -653,182 +566,4 @@ for (let i = 0; i < pastThemes.length; i += themesPerPage) {
     });
   </script>
 
-  <script is:inline>
-    // ── 我的七日書足跡：用 Matters GraphQL 公開 API 查詢 user.articles，
-    //    篩選有 "七日書" / "三日書" / "自由寫" / "兩廳院" / "情書"
-    //    campaign 的，按 campaign 分組顯示。
-    //    無登入、無紀錄、瀏覽器直連 Matters API。
-    const passportForm = document.getElementById("passport-search");
-    const passportResult = document.getElementById("passport-result");
-    const passportInput = document.getElementById("passport-handle");
-    const MATTERS_GQL = "https://server.matters.town/graphql";
-    const MATTERS_BASE = "https://matters.town";
-    const FREEWRITE_NEEDLE = ["七日書", "三日書", "自由寫", "情書", "兩廳院"];
-
-    const escapeHtml = (s) =>
-      String(s ?? "").replace(/[&<>"']/g, (c) => (
-        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
-      ));
-
-    const fetchUserArticles = async (handle) => {
-      const query = `query($userName: String!) {
-        user(input: { userName: $userName }) {
-          userName displayName avatar
-          articles(input: { first: 100 }) {
-            edges {
-              node {
-                shortHash slug title createdAt
-                campaigns { campaign { shortHash name } }
-              }
-            }
-          }
-        }
-      }`;
-      const res = await fetch(MATTERS_GQL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables: { userName: handle } }),
-      });
-      const json = await res.json();
-      if (json.errors) throw new Error(json.errors[0]?.message || "GraphQL error");
-      return json.data.user;
-    };
-
-    const formatMonthLabel = (iso) => {
-      if (!iso) return "";
-      const [y, m] = iso.split("T")[0].split("-");
-      return `${y} / ${Number(m)}`;
-    };
-
-    const renderResult = (user) => {
-      if (!user) {
-        passportResult.innerHTML = `
-          <div class="passport-empty">
-            <h3>找不到這位文友的 Matters 帳號</h3>
-            <p>請確認帳號拼寫是否正確（@ 後面那段，例如 <code>mashbean</code>）。
-            如果是新朋友，<a href="${escapeHtml(window.location.origin + window.location.pathname)}#current">先看看本月七日書題目</a>。</p>
-          </div>`;
-        return;
-      }
-      const articles = (user.articles?.edges || [])
-        .map((e) => e.node)
-        .filter((a) =>
-          (a.campaigns || []).some((c) =>
-            FREEWRITE_NEEDLE.some((n) => (c.campaign?.name || "").includes(n)),
-          ),
-        );
-
-      if (!articles.length) {
-        passportResult.innerHTML = `
-          <div class="passport-empty">
-            <h3>${escapeHtml(user.displayName)} 還沒在七日書留下足跡</h3>
-            <p>查到 <a href="${MATTERS_BASE}/@${escapeHtml(user.userName)}" target="_blank" rel="noopener">@${escapeHtml(user.userName)}</a> 的 Matters 公開頁面，但沒看到七日書相關 campaign 的文章。</p>
-            <p>歡迎現在加入：<a class="button button--primary" href="#current">看本月題目 →</a></p>
-          </div>`;
-        return;
-      }
-
-      // group by campaign shortHash
-      const groups = new Map();
-      articles.forEach((a) => {
-        const c = (a.campaigns || []).find((c) =>
-          FREEWRITE_NEEDLE.some((n) => (c.campaign?.name || "").includes(n)),
-        )?.campaign;
-        if (!c) return;
-        if (!groups.has(c.shortHash))
-          groups.set(c.shortHash, { campaign: c, articles: [] });
-        groups.get(c.shortHash).articles.push(a);
-      });
-
-      // sort groups by latest article createdAt desc
-      const sorted = [...groups.values()].sort((a, b) => {
-        const da = Math.max(...a.articles.map((x) => +new Date(x.createdAt)));
-        const db = Math.max(...b.articles.map((x) => +new Date(x.createdAt)));
-        return db - da;
-      });
-
-      const totalArticles = articles.length;
-      const totalCampaigns = sorted.length;
-      const profileUrl = `${MATTERS_BASE}/@${user.userName}`;
-
-      const groupHtml = sorted
-        .map((g) => {
-          const period = g.articles
-            .map((a) => formatMonthLabel(a.createdAt))
-            .filter(Boolean)[0];
-          const eventUrl = `${MATTERS_BASE}/e/${g.campaign.shortHash}`;
-          const articleList = g.articles
-            .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
-            .map(
-              (a) => `
-              <li>
-                <a href="${MATTERS_BASE}/a/${escapeHtml(a.shortHash)}" target="_blank" rel="noopener">
-                  ${escapeHtml(a.title)}
-                </a>
-                <span class="passport-article__date">${escapeHtml(a.createdAt.slice(0, 10))}</span>
-              </li>`,
-            )
-            .join("");
-          return `
-            <article class="passport-group">
-              <header class="passport-group__head">
-                <div>
-                  <p class="passport-group__meta">${escapeHtml(period || "")} · ${g.articles.length} 篇</p>
-                  <h3>${escapeHtml(g.campaign.name)}</h3>
-                </div>
-                <a class="passport-group__link" href="${eventUrl}" target="_blank" rel="noopener">
-                  看活動頁 →
-                </a>
-              </header>
-              <ul class="passport-group__articles">${articleList}</ul>
-            </article>`;
-        })
-        .join("");
-
-      passportResult.innerHTML = `
-        <div class="passport-found">
-          <header class="passport-found__head">
-            ${user.avatar ? `<img class="passport-found__avatar" src="${escapeHtml(user.avatar)}" alt="" />` : ""}
-            <div>
-              <p class="passport-found__name">
-                ${escapeHtml(user.displayName)}
-                <a href="${profileUrl}" target="_blank" rel="noopener">@${escapeHtml(user.userName)} →</a>
-              </p>
-              <p class="passport-found__stats">
-                在 <strong>${totalCampaigns}</strong> 期七日書活動裡，留下 <strong>${totalArticles}</strong> 篇文章
-              </p>
-            </div>
-          </header>
-          <div class="passport-groups">${groupHtml}</div>
-        </div>`;
-    };
-
-    const renderError = (msg) => {
-      passportResult.innerHTML = `
-        <div class="passport-empty">
-          <h3>查詢沒成功</h3>
-          <p>${escapeHtml(msg)}</p>
-        </div>`;
-    };
-
-    const renderLoading = () => {
-      passportResult.innerHTML = `
-        <p class="passport-loading" aria-busy="true">正在向 Matters 詢問你的書寫足跡…</p>`;
-    };
-
-    passportForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const raw = (passportInput?.value || "").trim();
-      if (!raw) return;
-      const handle = raw.replace(/^@/, "").replace(/^https?:\/\/[^/]+\/@?/, "");
-      if (!handle) return;
-      renderLoading();
-      try {
-        const user = await fetchUserArticles(handle);
-        renderResult(user);
-      } catch (err) {
-        renderError(err.message || String(err));
-      }
-    });
-  </script>
 </BaseLayout>

@@ -17,15 +17,16 @@ import "../styles/seven-day-campaign.css";
 import { withBase } from "../utils/paths";
 
 const homeHref = withBase("");
+const museumHref = withBase("museum/");
 const assetSrc = (src?: string) => {
   if (!src) return "";
   return src.startsWith("http") ? src : withBase(src);
 };
 const nav = [
+  { href: homeHref, label: "七日書介紹" },
+  { href: museumHref, label: "博物館" },
   { href: "#themes", label: "歷次主題" },
   { href: "#impact", label: "參與數據" },
-  { href: "#lectures", label: "名家講座" },
-  { href: "#case", label: "合作案例" },
   { href: "#packages", label: "合作內容" },
   { href: "#faq", label: "FAQ" },
 ];
@@ -57,7 +58,6 @@ const marqueeAvatars = [
       </nav>
 
       <div class="sitebar__actions">
-        <a class="sitebar__link" href={homeHref}>參與寫作</a>
         <a class="button button--primary" href={shared.contactHref}
           >{partnerPage.hero.primaryLabel}</a
         >
@@ -146,7 +146,7 @@ const marqueeAvatars = [
               ))
             }
           </div>
-          <p class="theme-pager__more">
+          <div class="theme-pager__more">
             <button
               class="button button--quiet"
               type="button"
@@ -160,7 +160,7 @@ const marqueeAvatars = [
             <a class="button button--quiet" href={withBase("museum/")}
               >查看完整七日書博物館 →</a
             >
-          </p>
+          </div>
         </div>
       </section>
 
