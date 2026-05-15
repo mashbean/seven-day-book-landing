@@ -56,40 +56,24 @@ const pageTitle =
 <meta name="twitter:description" content={description} />
 
 <!--
-  Display 字型：jf-jinxuanlatte 2.1（justfont 金萱拿鐵）
-  授權：matters.town 已購商用授權，repo 不含原始 OTF；只 ship subset 後 woff2
-  Subset 範圍：landing source 內所有出現的中文字 + ASCII（約 1,300 chars，<300KB/weight）
-  對應 spec: thematters/design-system @ docs/freewrite-design-system/typography.md
+  Display 字型：jf-openhuninn 2.1（justfont 粉圓體）
+  授權：SIL Open Font License 1.1（justfont 開源版），可商用、可 web font 部署、可 redistribute
+  原始檔：jf-openhuninn-2.1.ttf（4.7 MB）→ subset 後 woff2（~500 KB）
+  Subset 範圍：landing source 全文掃描出現的 ~2,800 個中文字 + ASCII + 常用標點 + Latin Ext
+  Re-subset 流程：見 scripts/subset-openhuninn.sh（如有）
 -->
-<link rel="preload" href={withBase("fonts/jf-jinxuan-medium.woff2")} as="font" type="font/woff2" crossorigin />
-<link rel="preload" href={withBase("fonts/jf-jinxuan-extrabold.woff2")} as="font" type="font/woff2" crossorigin />
+<link rel="preload" href={withBase("fonts/jf-openhuninn-2.1.subset.woff2")} as="font" type="font/woff2" crossorigin />
+
+<!-- Bebas Neue：徽章 #N 數字 / dignity sans-serif 數字佔位用 -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" />
 <style is:global set:html={`
   @font-face {
-    font-family: 'jf-jinxuan';
+    font-family: 'jf-openhuninn';
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('${withBase("fonts/jf-jinxuan-book.woff2")}') format('woff2');
-  }
-  @font-face {
-    font-family: 'jf-jinxuan';
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
-    src: url('${withBase("fonts/jf-jinxuan-medium.woff2")}') format('woff2');
-  }
-  @font-face {
-    font-family: 'jf-jinxuan';
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url('${withBase("fonts/jf-jinxuan-extrabold.woff2")}') format('woff2');
-  }
-  @font-face {
-    font-family: 'jf-jinxuan';
-    font-style: normal;
-    font-weight: 900;
-    font-display: swap;
-    src: url('${withBase("fonts/jf-jinxuan-heavy.woff2")}') format('woff2');
+    src: url('${withBase("fonts/jf-openhuninn-2.1.subset.woff2")}') format('woff2');
   }
 `}></style>

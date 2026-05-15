@@ -605,7 +605,7 @@
  * 規格摘要：
  *   - Figma 主源 IG portrait 1080×1350，aspect 4:5（web 上保留同比例）
  *   - 背景：LINEAR_GRADIENT（freewrite 模板軌、不用 image fill）
- *   - 主標題字型 jf-jinxuan Bold（layout-principles.md §7）
+ *   - 主標題字型 jf-openhuninn (粉圓)（layout-principles.md §7）
  *   - 三種 state: past（已開放）/ today（今日）/ locked（即將開放）
  *   - 七日書 logo 角落、dark / white 變體擇一
  */
@@ -712,7 +712,7 @@
   color: var(--paper);
 }
 
-/* Day badge (D1-D7) — jf-jinxuan，桌面 7 欄佔滿時收窄字級避免破版 */
+/* Day badge (D1-D7) — jf-openhuninn 粉圓，桌面 7 欄佔滿時收窄字級避免破版 */
 .day-unlock-card__day {
   display: block;
   margin: 8px 0 4px;
@@ -735,7 +735,7 @@
   color: var(--ink-muted);
 }
 
-/* Title 主題 — jf-jinxuan，桌面 14-15px、手機 18-19px 不破版 */
+/* Title 主題 — jf-openhuninn 粉圓，桌面 14-15px、手機 18-19px 不破版 */
 .day-unlock-card h3 {
   margin: 0 0 6px;
   color: var(--ink);
@@ -3636,7 +3636,7 @@
   counter-increment: book-pn;
 }
 
-/* 頁碼：底部置中、灰字、jf-jinxuan */
+/* 頁碼：底部置中、灰字、jf-openhuninn */
 .book-page::after {
   content: counter(book-pn);
   position: absolute;

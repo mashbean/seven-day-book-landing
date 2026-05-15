@@ -1,0 +1,201 @@
+---
+/**
+ * 自由寫紀念徽章 — 可重組 SVG 模板
+ *
+ * 結構（外→內）：
+ *   1. 外圓粗框（主題色）
+ *   2. 內圓白底 + 中央插畫（AI 生圖；fallback 顯示佔位）
+ *   3. 上方拱形「自由寫」plaque（黑底黃字）
+ *   4. 底部 ribbon（主題色，左字「七日書」 / 右字 award）
+ *   5. 中央 crown badge（黑圓 + #N 數字 + 皇冠）
+ *   6. 底部小黃點裝飾
+ *
+ * 字型：jf-openhuninn (粉圓體) + Bebas Neue (#N 數字)
+ *       — jf-openhuninn 已由 BaseHead.astro ship 為 woff2 subset (SIL OFL 授權)
+ *       — Bebas Neue 由 Google Fonts CDN 提供（BaseHead 載入）
+ */
+interface Props {
+  size?: number;
+  theme?: "green" | "coral" | "sky" | "amber" | "violet" | "rose";
+  award?: string;          // 例：「參與證明」「大滿貫」「全勤獎」
+  number?: number | string; // 期數：1, 2, 3, …
+  illustration?: string;   // 中央插畫圖片 URL（PNG/JPG/SVG）
+  title?: string;          // a11y label
+  showCrown?: boolean;
+}
+
+const {
+  size = 320,
+  theme = "green",
+  award = "參與證明",
+  number = 1,
+  illustration,
+  title = "自由寫紀念徽章",
+  showCrown = true,
+} = Astro.props;
+
+const themes: Record<string, { ring: string; ringDeep: string; ribbon: string; bgInner: string }> = {
+  green:  { ring: "#7DBA4F", ringDeep: "#5C9939", ribbon: "#7DBA4F", bgInner: "#cfe6ec" },
+  coral:  { ring: "#F0907D", ringDeep: "#D26A57", ribbon: "#F0907D", bgInner: "#f7d6cb" },
+  sky:    { ring: "#5AAFCB", ringDeep: "#3E8AA3", ribbon: "#5AAFCB", bgInner: "#dff0f4" },
+  amber:  { ring: "#E5A93A", ringDeep: "#B98520", ribbon: "#E5A93A", bgInner: "#fbe8c4" },
+  violet: { ring: "#9879BC", ringDeep: "#735794", ribbon: "#9879BC", bgInner: "#e2d4ee" },
+  rose:   { ring: "#D55A8A", ringDeep: "#AC3D6A", ribbon: "#D55A8A", bgInner: "#f4d4e0" },
+};
+const C = themes[theme] || themes.green;
+
+// 共用 ID 後綴避免多個 instance 衝突
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 600 600"
+  width={size}
+  height={size}
+  role="img"
+  aria-label={title}
+  class="badge-canvas"
+  data-theme={theme}
+>
+  <title>{title}</title>
+
+  <defs>
+    <!-- 內圈插畫 clip：圓形 -->
+    <clipPath id={`badge-clip-${uid}`}>
+      <circle cx="300" cy="300" r="270" />
+    </clipPath>
+    <!-- ribbon 路徑（弧形飄帶在底部 1/3） -->
+    <path
+      id={`ribbon-path-${uid}`}
+      d="M 60 405
+         Q 300 470 540 405
+         L 540 470
+         Q 300 530 60 470 Z"
+    />
+  </defs>
+
+  <!-- 外圓粗框 -->
+  <circle cx="300" cy="300" r="294" fill="#1a1a1a" />
+  <circle cx="300" cy="300" r="288" fill={C.ring} />
+  <circle cx="300" cy="300" r="270" fill="#ffffff" />
+
+  <!-- 中央插畫（被裁成圓形） -->
+  <g clip-path={`url(#badge-clip-${uid})`}>
+    <rect x="0" y="0" width="600" height="600" fill={C.bgInner} />
+    {illustration ? (
+      <image
+        href={illustration}
+        x="30"
+        y="30"
+        width="540"
+        height="540"
+        preserveAspectRatio="xMidYMid slice"
+      />
+    ) : (
+      <text
+        x="300"
+        y="310"
+        text-anchor="middle"
+        font-family="'Noto Sans TC', sans-serif"
+        font-size="28"
+        fill="#888"
+      >插畫</text>
+    )}
+  </g>
+
+  <!-- 底部 ribbon（壓在插畫上） -->
+  <use href={`#ribbon-path-${uid}`} fill={C.ribbon} stroke="#1a1a1a" stroke-width="3" />
+  <text
+    x="170"
+    y="457"
+    text-anchor="middle"
+    font-family="'jf-openhuninn', 'Noto Sans TC', 'PingFang TC', sans-serif"
+    font-size="38"
+    font-weight="700"
+    fill="#fff7d6"
+    letter-spacing="3"
+  >七日書</text>
+  <text
+    x="430"
+    y="457"
+    text-anchor="middle"
+    font-family="'jf-openhuninn', 'Noto Sans TC', 'PingFang TC', sans-serif"
+    font-size="38"
+    font-weight="700"
+    fill="#fff7d6"
+    letter-spacing="3"
+  >{award}</text>
+
+  <!-- 上方「自由寫」拱形 plaque -->
+  <g transform="translate(300 90)">
+    <!-- 拱形黑底 + 黃邊 -->
+    <path
+      d="M -110 -42
+         Q -90 -58 0 -58
+         Q 90 -58 110 -42
+         L 110 28
+         Q 90 12 0 12
+         Q -90 12 -110 28 Z"
+      fill="#2a2018"
+      stroke="#f1c95a"
+      stroke-width="4"
+    />
+    <text
+      x="0"
+      y="-2"
+      text-anchor="middle"
+      font-family="'jf-openhuninn', 'Noto Sans TC', 'PingFang TC', sans-serif"
+      font-weight="900"
+      font-size="50"
+      fill="#f1c95a"
+      letter-spacing="6"
+    >自由寫</text>
+  </g>
+
+  <!-- 中央底部 crown badge -->
+  <g transform="translate(300 425)">
+    {showCrown && (
+      <path
+        d="M -38 -42
+           L -28 -22 L -14 -38 L 0 -20 L 14 -38 L 28 -22 L 38 -42
+           L 38 -18 L -38 -18 Z"
+        fill="#f1c95a"
+        stroke="#1a1a1a"
+        stroke-width="2.5"
+      />
+    )}
+    <circle cx="0" cy="10" r="44" fill="#1a1a1a" stroke={C.ringDeep} stroke-width="3" />
+    <text
+      x="0"
+      y="26"
+      text-anchor="middle"
+      font-family="'Bebas Neue', 'Noto Sans TC', sans-serif"
+      font-weight="700"
+      font-size="48"
+      fill="#f1c95a"
+      letter-spacing="-1"
+    >#{number}</text>
+  </g>
+
+  <!-- 底部裝飾小點點（沿外圈內側弧線，從 ~5 點到 ~7 點位置） -->
+  <g fill="#f1c95a">
+    {Array.from({ length: 23 }).map((_, i) => {
+      // SVG 角度：0=右、π/2=下、π=左
+      // 弧線從 0.28π（4:30 位）到 0.72π（7:30 位）
+      const angle = Math.PI * (0.28 + (i / 22) * 0.44);
+      const r = 257;
+      const cx = 300 + Math.cos(angle) * r;
+      const cy = 300 + Math.sin(angle) * r;
+      return <circle cx={cx} cy={cy} r="5" />;
+    })}
+  </g>
+</svg>
+
+<style>
+  .badge-canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+</style>

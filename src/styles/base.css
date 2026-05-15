@@ -36,16 +36,22 @@
   --board-gap: var(--space-sp32);             /* 32px */
 
   /* ── Font stacks ─────────────────────────────────────────────
-   * --font-display: jf-jinxuanlatte 2.1（justfont 金萱拿鐵商用授權）
-   *   只用於 H1/H2/H3 / 大標題 / 季節 slogan / 數字。
-   *   對應 thematters/design-system @ docs/freewrite-design-system/typography.md
-   *   "jf-jinxuan Bold 是 freewrite 的主要 display 字型"
-   *   weights ship 4 個：400 / 500 / 700 / 900；fallback Noto Serif TC → serif
+   * --font-display: jf-openhuninn 2.1（justfont 粉圓體 / SIL OFL 1.1）
+   *   用於 H1/H2/H3 / 大標題 / 季節 slogan / 數字。粉圓字體偏圓潤手感，
+   *   調性與 freewrite 「自由、輕盈、可愛」的主題吻合。
+   *   ship 1 個 weight (regular)；fallback Noto Sans TC → PingFang TC → sans-serif
+   *
+   *   2026-05-15 字型變更紀錄：
+   *   原本使用 jf-jinxuan（金萱）— 但站方所持為「個人通用授權」，不含 web font
+   *   部署，且授權主體為個人黃彥霖、不可轉至 Matters Lab 公司產品使用。
+   *   改用 jf-openhuninn（粉圓）— 同 justfont 出品的 SIL OFL 開源版本，
+   *   完全允許 web font 部署、商用、redistribute。
+   *
    * --font-ui: 內文沿用主 design-system 預設（PingFang TC / Source Han Sans TC）
    *   不在 freewrite 域內覆寫 body，以維持 matters.town 全站視覺連續性
    * --font-reading: 別名給既有 page CSS 用，指向 --font-display
    */
-  --font-display: "jf-jinxuan", "Noto Serif TC", var(--font-family-reading), serif;
+  --font-display: "jf-openhuninn", "Noto Sans TC", var(--font-family-reading), sans-serif;
   --font-reading: var(--font-display);
   --font-ui: var(--font-family-ui);
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;

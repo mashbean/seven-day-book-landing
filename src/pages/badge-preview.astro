@@ -1,0 +1,128 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BadgeCanvas from "../components/BadgeCanvas.astro";
+import { withBase } from "../utils/paths";
+
+// 暫時用既有完成品 PNG 當中央插畫（之後改成 gpt-image-2 生成的乾淨底）
+const ILLUS_PARTICIPATE = withBase("images/freewrite/badges/source/base/自由寫參加獎.png");
+const ILLUS_GRAND = withBase("images/freewrite/badges/source/base/自由寫大滿貫.png");
+---
+
+<BaseLayout title="徽章設計預覽" noindex>
+  <article class="bp">
+    <header>
+      <p class="bp__kicker">internal · iteration v0.1</p>
+      <h1>自由寫紀念徽章模板</h1>
+      <p class="bp__lede">
+        SVG 模板 + jf-openhuninn 粉圓體 + 中央插畫換貼。
+        測試各種主題色 / 期數 / 獎項文字組合。
+      </p>
+    </header>
+
+    <section>
+      <h2>1 · 對照原版</h2>
+      <p class="bp__note">
+        左：原版 PNG（4096×4096）/ 右：新 SVG 模板（同樣是綠 = 參與證明、粉 = 大滿貫）。
+      </p>
+      <div class="bp__compare">
+        <figure>
+          <img src={ILLUS_PARTICIPATE} alt="原版參加獎" />
+          <figcaption>原版 · 參加獎</figcaption>
+        </figure>
+        <figure>
+          <BadgeCanvas
+            theme="green"
+            award="參與證明"
+            number={1}
+            illustration={ILLUS_PARTICIPATE}
+            showCrown={false}
+            size={400}
+          />
+          <figcaption>新模板 · #1 參與證明</figcaption>
+        </figure>
+      </div>
+      <div class="bp__compare">
+        <figure>
+          <img src={ILLUS_GRAND} alt="原版大滿貫" />
+          <figcaption>原版 · 大滿貫</figcaption>
+        </figure>
+        <figure>
+          <BadgeCanvas
+            theme="coral"
+            award="大滿貫"
+            number={3}
+            illustration={ILLUS_GRAND}
+            showCrown={true}
+            size={400}
+          />
+          <figcaption>新模板 · #3 大滿貫</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>2 · 全主題色掃描</h2>
+      <p class="bp__note">六個內建主題色 × 不同獎項文字。</p>
+      <div class="bp__grid">
+        <BadgeCanvas theme="green" award="參與證明" number={1} illustration={ILLUS_PARTICIPATE} showCrown={false} size={240} />
+        <BadgeCanvas theme="coral" award="大滿貫" number={3} illustration={ILLUS_GRAND} showCrown size={240} />
+        <BadgeCanvas theme="sky" award="全勤獎" number={7} illustration={ILLUS_PARTICIPATE} size={240} />
+        <BadgeCanvas theme="amber" award="七連霸" number={12} illustration={ILLUS_GRAND} size={240} />
+        <BadgeCanvas theme="violet" award="開卷獎" number={5} illustration={ILLUS_PARTICIPATE} size={240} />
+        <BadgeCanvas theme="rose" award="敘事者" number={9} illustration={ILLUS_GRAND} size={240} />
+      </div>
+    </section>
+
+    <section>
+      <h2>3 · 期數壓力測試</h2>
+      <p class="bp__note">確認 #1 → #99 都能塞進 crown badge 中央。</p>
+      <div class="bp__grid">
+        <BadgeCanvas theme="green" award="參與證明" number={1} illustration={ILLUS_PARTICIPATE} size={180} />
+        <BadgeCanvas theme="green" award="參與證明" number={9} illustration={ILLUS_PARTICIPATE} size={180} />
+        <BadgeCanvas theme="green" award="參與證明" number={24} illustration={ILLUS_PARTICIPATE} size={180} />
+        <BadgeCanvas theme="green" award="參與證明" number={99} illustration={ILLUS_PARTICIPATE} size={180} />
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .bp {
+    width: min(1100px, 92vw);
+    margin: 0 auto var(--space-10);
+    color: var(--color-fg);
+  }
+  .bp__kicker {
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+    margin: 0 0 var(--space-2);
+  }
+  .bp h1 {
+    margin: 0 0 var(--space-3);
+    font-family: 'jf-openhuninn', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+  }
+  .bp__lede { color: var(--color-fg-muted); margin: 0 0 var(--space-8); }
+  .bp__note { color: var(--color-fg-muted); font-size: 0.95rem; margin: 0 0 var(--space-4); }
+  .bp section { margin: var(--space-8) 0; padding-top: var(--space-6); border-top: 1px solid var(--color-border); }
+  .bp h2 { font-family: 'jf-openhuninn', sans-serif; font-weight: 700; margin: 0 0 var(--space-2); }
+  .bp__compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+    align-items: end;
+    margin-bottom: var(--space-6);
+  }
+  .bp__compare figure { margin: 0; text-align: center; }
+  .bp__compare img { width: 400px; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  .bp__compare figcaption { margin-top: var(--space-2); color: var(--color-fg-muted); font-size: 0.9rem; }
+  .bp__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-5);
+    justify-items: center;
+  }
+</style>

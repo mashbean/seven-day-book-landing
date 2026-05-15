@@ -653,7 +653,7 @@ export const latestArticles = [
     cover: `${CDN}/embed/b2418da7-5830-4f3d-8321-e976b14870af.png/public`,
   },
   {
-    // 取代原 IceYuzu 簡中文章（jf-jinxuan 不支援簡體字、字體 fallback 不協調）
+    // 取代原 IceYuzu 簡中文章（當時 jf-jinxuan 不支援簡體字；2026-05 已改 jf-openhuninn 粉圓，但此條保留紀錄）
     title: "第四天｜我曾經經營過的冷靜",
     author: "Tony_Chan",
     summary: "在不同的職場位置裡，我最常有意識經營的面向是冷靜。這種冷靜不是天生，也不是沒有情緒；正因為內在反應很快，才更需要學會把第一時間的判斷收住。",
