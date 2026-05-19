@@ -1,26 +1,24 @@
-name: Refresh marathoners stats
+name: Marathoners sanity-check (GraphQL)
 
-# 每週一台北時間早上 9 點（= UTC 週一 01:00）跑一次，從 Matters GraphQL 重算
-# 大滿貫 / 參加獎 / Top 50 marathoners，並開 PR 讓人 review 再 merge。
+# ⚠️ 注意：實測 Matters public GraphQL 會嚴重低估大滿貫次數
+# （5-25 期算出 276 vs observablehq DB ground truth 673，落差 397）。
+# 原因：GraphQL 不會列出被作者隱藏 / 撤回 / 刪除的文章。
 #
-# 也可以手動觸發（workflow_dispatch）。
+# 真正的 ground truth：`scripts/import-grand-slams.mjs` 從 observablehq
+# notebook 匯出的 JSON 載入（research/freewrite-grand-slams-observablehq.json）。
+# 此 JSON 由人手動每月從 observablehq notebook 重新匯出。
 #
-# 動機：取代手動跑 observablehq notebook，並讓 partnership 顯示的
-# `totalGrandSlams` 不會落後資料庫太久。
-#
-# 不需要任何 secret——純呼叫 server.matters.town/graphql public schema。
+# 本 workflow 保留為「sanity-check」用途：每月跑 GraphQL dry-run，
+# 比對跟 marathoners.ts 內 totalGrandSlams 落差是否合理，
+# 若 GraphQL 數字 < ground truth 30% 觸發 warning，提示該重跑 observablehq。
 
 on:
   schedule:
-    - cron: "0 1 * * 1"
+    - cron: "0 1 1 * *" # 每月一日 UTC 01:00 (台北 09:00)
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  refresh:
+  sanity_check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,49 +27,18 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Refresh marathoners data
-        run: node scripts/refresh-marathoners.mjs --write
-
-      - name: Check for changes
-        id: diff
+      - name: Run GraphQL stats (dry-run, no commit)
         run: |
-          if git diff --quiet src/data/freewrite-marathoners.ts; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "沒有變動，跳過 PR"
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "偵測到變動，準備開 PR"
+          node scripts/refresh-marathoners.mjs 2>&1 | tee /tmp/graphql-stats.txt
+          GRAPHQL_GRAND=$(grep "總大滿貫次數" /tmp/graphql-stats.txt | head -1 | grep -oE '[0-9]+' | head -1)
+          GROUND_TRUTH=$(grep -oE 'totalGrandSlams = [0-9]+' src/data/freewrite-marathoners.ts | grep -oE '[0-9]+')
+          echo "GraphQL 算出: $GRAPHQL_GRAND"
+          echo "Ground truth (observablehq import): $GROUND_TRUTH"
+          # GraphQL 永遠會比 ground truth 低（因為看不到隱藏文）；
+          # 但如果 GraphQL < ground truth × 30%，可能 GraphQL 整個壞掉
+          THRESHOLD=$((GROUND_TRUTH * 30 / 100))
+          if [ "$GRAPHQL_GRAND" -lt "$THRESHOLD" ]; then
+            echo "::warning::GraphQL 大滿貫數字 $GRAPHQL_GRAND 顯著低於下限 $THRESHOLD（30% of $GROUND_TRUTH）— 可能 GraphQL 出問題，或 observablehq ground truth 已過時"
           fi
-
-      - name: Create Pull Request
-        if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          branch: auto/refresh-marathoners
-          delete-branch: true
-          base: main
-          title: "chore(stats): 刷新 marathoners 統計（自動）"
-          commit-message: |
-            chore(stats): 刷新 marathoners 統計
-
-            scripts/refresh-marathoners.mjs 排程自動跑出來的新數字。
-            Review 過確認沒問題就 merge。
-          body: |
-            ## 自動產生的統計刷新
-
-            來源：`scripts/refresh-marathoners.mjs` →
-            `server.matters.town/graphql` 即時撈 21 期 campaign 的
-            所有 article + author + stage，重算大滿貫與參加獎。
-
-            **看一下變動的數字是否合理**（特別是 `totalGrandSlams`），
-            然後 merge 即可觸發 deploy。
-
-            如果某期數字異常下降，可能是：
-            - GraphQL 暫時降級（重跑 workflow_dispatch 一次）
-            - 該期 campaign 結構改變（用 observablehq notebook 對照）
-            - shortHash 改了（更新 scripts/refresh-marathoners.mjs 內 CAMPAIGNS 陣列）
-
-            🤖 由 `.github/workflows/refresh-marathoners.yml` 排程觸發
-          labels: |
-            automated
-            stats
+          # 提示：如果新一期 campaign 結束，記得 重跑 observablehq notebook
+          # 並把 history table 匯出 JSON 覆蓋 research/freewrite-grand-slams-observablehq.json
