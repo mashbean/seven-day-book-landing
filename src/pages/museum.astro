@@ -517,7 +517,11 @@ const promptIso = (mdStr: string) => {
             data-initial={LECTURES_INITIAL}
           >
             {
-              lectures.map((lecture, idx) => (
+              /* CC #2：有文字稿 (hasTranscript) 的講者排前面、整理中的排後面。
+                 跟 partnership.astro 同一邏輯（lectures 兩處顯示要同步）。 */
+              [...lectures]
+                .sort((a, b) => Number(b.hasTranscript) - Number(a.hasTranscript))
+                .map((lecture, idx) => (
                 <article
                   class="lecture-card lecture-card--compact lecture-card--on-dark"
                   data-lecture-item={idx}
