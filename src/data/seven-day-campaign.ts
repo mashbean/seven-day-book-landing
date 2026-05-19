@@ -1,5 +1,5 @@
 import { sevenDayBookLanding as legacy } from "./seven-day-book";
-import { totalGrandSlams } from "./freewrite-marathoners";
+import { totalGrandSlams, totalUniqueGrandSlamWinners } from "./freewrite-marathoners";
 import { featuredCampaigns, featuredArticles } from "./freewrite-featured";
 
 const CDN = "https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/prod";
@@ -600,7 +600,7 @@ export const audiencePage = {
     { value: "24", label: "歷來舉辦期數", note: "2024 / 4 至今每月一期" },
     { value: "3,200+", label: "累積參與人次", note: "由各期完結報告加總" },
     { value: "9,000+", label: "累積作品", note: "寫下超過 800 萬字" },
-    { value: `${totalGrandSlams.toLocaleString()}+`, label: "大滿貫完成者", note: "完成七天七篇" },
+    { value: `${totalUniqueGrandSlamWinners.toLocaleString()}+`, label: "大滿貫文友", note: "至少完成過一次七天七篇" },
   ],
   currentIssue,
   articlesHeading: "他們正在寫這些",
@@ -720,7 +720,7 @@ export const partnerPage = {
     {
       title: "書寫憑證",
       iconKind: "badge",
-      body: `完成者可獲得七日書徽章或鏈上參與憑證，讓參與感從活動週延伸到個人頁與社群關係。已發出超過 ${totalGrandSlams.toLocaleString()} 枚大滿貫徽章。`,
+      body: `完成者可獲得七日書徽章或鏈上參與憑證，讓參與感從活動週延伸到個人頁與社群關係。${totalUniqueGrandSlamWinners} 位文友拿過大滿貫徽章，累計發出 ${totalGrandSlams.toLocaleString()} 枚鏈上憑證。`,
     },
   ],
   faqHeading: "如何與七日書合作",
