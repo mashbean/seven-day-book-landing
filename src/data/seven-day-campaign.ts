@@ -5,6 +5,10 @@ import {
   totalParticipationAwards,
   totalUniqueParticipationWinners,
   totalUniqueAwardWinners,
+  totalRegistrations,
+  totalUniqueAuthors,
+  totalArticles,
+  eventCount,
 } from "./freewrite-marathoners";
 import { featuredCampaigns, featuredArticles } from "./freewrite-featured";
 
@@ -593,8 +597,7 @@ export const latestArticles = featuredArticles
 
 export const audiencePage = {
   title: "七日書｜下一個七天，一起寫",
-  description:
-    "七日書是 Matters 自由寫每月一次的書寫活動：七天、七個題目，和上千位文友一起把生活寫成一本小書。從 2024 春到今天，已累積 24 期、9,000+ 篇文章。",
+  description: `七日書是 Matters 自由寫每月一次的書寫活動：七天、七個題目，和上千位文友一起把生活寫成一本小書。從 2024 春到今天，已累積 ${eventCount} 期、${totalArticles.toLocaleString()} 篇文章。`,
   hero: {
     eyebrow: "Matters 自由寫",
     headline: "把一週，寫成一本有人同行的小書。",
@@ -603,9 +606,9 @@ export const audiencePage = {
     secondaryLabel: "洽談合作",
   },
   stats: [
-    { value: "24", label: "歷來舉辦期數", note: "2024 / 4 至今每月一期" },
-    { value: "3,200+", label: "累積參與人次", note: "由各期完結報告加總" },
-    { value: "9,000+", label: "累積作品", note: "寫下超過 800 萬字" },
+    { value: `${eventCount}`, label: "歷來舉辦期數", note: "2024 / 4 至今每月一期" },
+    { value: totalRegistrations.toLocaleString(), label: "累積報名人次", note: `來自 ${totalUniqueAuthors.toLocaleString()} 位獨立作者` },
+    { value: totalArticles.toLocaleString(), label: "累積作品篇數", note: "完整七篇可獲大滿貫" },
     { value: `${totalUniqueAwardWinners.toLocaleString()}+`, label: "獲憑證文友", note: `${totalUniqueGrandSlamWinners} 位大滿貫 + ${totalUniqueParticipationWinners} 位參加獎（含 ${totalUniqueGrandSlamWinners + totalUniqueParticipationWinners - totalUniqueAwardWinners} 重疊）` },
   ],
   currentIssue,
@@ -630,8 +633,7 @@ export const audiencePage = {
 
 export const partnerPage = {
   title: "七日書｜機構合作",
-  description:
-    "七日書機構合作頁，整理 24 期歷史主題、16 位作家講座、累積 3,200+ 人次參與數據與兩廳院藝術出走合作案例，提供文化機構與品牌洽談七日書共創。",
+  description: `七日書機構合作頁，整理 ${eventCount} 期歷史主題、16 位作家講座、累積 ${totalRegistrations.toLocaleString()} 人次報名與兩廳院藝術出走合作案例，提供文化機構與品牌洽談七日書共創。`,
   heroBanner: `${CDN}/campaignCover/94525f57-eb5e-4e4a-9b5c-88af2ccb097f.png/w=1376,h=5504,fit=scale-down,anim=false`,
   hero: {
     eyebrow: "For partners",
@@ -642,8 +644,8 @@ export const partnerPage = {
   },
   impact: [
     { value: "24", label: "歷來舉辦期數", emphasis: true },
-    { value: "3,200+", label: "累積參與人次", emphasis: true },
-    { value: "9,000+", label: "累積作品篇數", emphasis: false },
+    { value: totalRegistrations.toLocaleString(), label: "累積報名人次", emphasis: true },
+    { value: totalArticles.toLocaleString(), label: "累積作品篇數", emphasis: false },
     { value: "16", label: "已邀請名家講座", emphasis: false },
   ],
   businessSignals: [

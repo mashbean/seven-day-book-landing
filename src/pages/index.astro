@@ -14,7 +14,13 @@ import {
   shared,
 } from "../data/seven-day-campaign";
 import { communityQuotes } from "../data/community-quotes";
-import { totalUniqueGrandSlamWinners } from "../data/freewrite-marathoners";
+import {
+  totalUniqueGrandSlamWinners,
+  totalUniqueAwardWinners,
+  totalRegistrations,
+  totalUniqueAuthors,
+  totalArticles,
+} from "../data/freewrite-marathoners";
 import { freewriteIssues } from "../data/freewrite-prompts";
 import "../styles/seven-day-campaign.css";
 import { withBase } from "../utils/paths";
@@ -229,7 +235,7 @@ const marqueeAvatars = [
               所有期數，都在<br/><span class="museum-promo-hl">七日書博物館</span>
             </h2>
             <p class="museum-promo-lead">
-              本月正在進行的題目、{allThemes.length} 期歷來主題、3,200+ 位文友的足跡 ——
+              本月正在進行的題目、{allThemes.length} 期歷來主題、{totalUniqueAuthors.toLocaleString()} 位文友的足跡 ——
               都收進博物館。每張主視覺都連回 Matters 那場活動。
             </p>
 
@@ -239,16 +245,16 @@ const marqueeAvatars = [
                 <span>期主題</span>
               </li>
               <li>
-                <strong>3,200<sup>+</sup></strong>
+                <strong>{totalUniqueAuthors.toLocaleString()}</strong>
                 <span>位文友</span>
               </li>
               <li>
-                <strong>9,000<sup>+</sup></strong>
+                <strong>{totalArticles.toLocaleString()}</strong>
                 <span>篇人生</span>
               </li>
               <li>
-                <strong>869</strong>
-                <span>枚大滿貫</span>
+                <strong>{totalUniqueAwardWinners}</strong>
+                <span>位獲憑證</span>
               </li>
             </ul>
 
@@ -448,7 +454,7 @@ const marqueeAvatars = [
         <div class="section__inner">
           <header class="section__header">
             <p class="eyebrow">{audiencePage.milestonesHeading}</p>
-            <h2 id="milestones-title">從第一期到 9,000 篇人生。</h2>
+            <h2 id="milestones-title">從第一期到 {totalArticles.toLocaleString()} 篇人生。</h2>
             <p>
               2024 春開始，每一個月一期，到 2026 年累積出來的時間軸。每個節點都連回 Matters 上的官方公告。
             </p>

@@ -26,6 +26,11 @@ export const totalUniqueParticipationWinners = 336;
 export const totalUniqueAwardWinners = 664; // 大滿貫 ∪ 參加獎
 export const eventCount = 25;
 
+/** 整站總量數字（observablehq ground truth，跟 awards 一起來自 DB direct） */
+export const totalRegistrations = 3915; // 報名人次（不去重，同一人多次報名算多次）
+export const totalUniqueAuthors = 2012; // 至少報名過一次的獨立作者數
+export const totalArticles = 8432; // 全期作品累計篇數
+
 /** 各期大滿貫 / 參加獎 人數對照 */
 export const perCampaignAwards = [
   { campaign:  1, grandSlams: 78, participationAwards: 22 },

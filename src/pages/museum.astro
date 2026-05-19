@@ -16,6 +16,8 @@ import {
   totalParticipationAwards,
   totalUniqueParticipationWinners,
   totalUniqueAwardWinners,
+  totalUniqueAuthors,
+  totalArticles,
   eventCount,
 } from "../data/freewrite-marathoners";
 import GrandBadge from "../components/GrandBadge.astro";
@@ -104,7 +106,7 @@ const promptIso = (mdStr: string) => {
           <h1 id="archive-title" class="archive-hero__title">七日書博物館</h1>
           <p class="archive-hero__lead">
             七日書從 2024 春開始，每個月進行一次為期七天的活動。
-            至今已經進行 {archiveThemes.length} 期、3,200+ 位文友、9,000+ 篇人生。
+            至今已經進行 {archiveThemes.length} 期、{totalUniqueAuthors.toLocaleString()} 位文友、{totalArticles.toLocaleString()} 篇人生。
             七日書博物館收集了所有文友的點點滴滴。
           </p>
         </div>
