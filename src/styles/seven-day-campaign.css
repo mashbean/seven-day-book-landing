@@ -1735,7 +1735,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 26px;
+  margin-top: 32px;
 }
 
 .cta-band .button--primary {
@@ -2009,7 +2009,7 @@
 }
 
 .prompt-issue-list__cta {
-  margin-top: 22px;
+  margin-top: 32px;
   text-align: center;
 }
 
@@ -2099,7 +2099,7 @@
   gap: 12px;
   align-items: center;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 28px;
 }
 
 .cta-reminder-form__label {
@@ -5033,7 +5033,7 @@
 }
 
 .museum-current__cta {
-  margin-top: 18px;
+  margin-top: 28px;
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
@@ -5393,7 +5393,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 14px 24px;
-  margin-top: 14px;
+  margin-top: 28px;
 }
 
 .museum-promo-cta {

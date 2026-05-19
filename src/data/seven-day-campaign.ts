@@ -618,7 +618,7 @@ export const audiencePage = {
   grandBadgeCopy: {
     kicker: "大滿貫徽章",
     title: "七天寫滿，為自己留下一枚時間印記。",
-    body: "在正式寫作期完成七篇作品，就能獲得七日書大滿貫徽章。它不是排名，也不是獎盃，而是提醒你：有一週，你真的每天回到文字裡。",
+    body: `在正式寫作期完成七篇作品，就能獲得七日書大滿貫徽章。它不是排名，也不是獎盃，而是提醒你：有一週，你真的每天回到文字裡。目前 ${totalUniqueGrandSlamWinners} 位文友達成、再加 ${totalUniqueParticipationWinners} 位文友拿到參加獎。`,
   },
   pastThemesHeading: "如果你也想寫更多",
   lecturesHeading: "名家講座",
