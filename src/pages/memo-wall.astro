@@ -10,7 +10,10 @@ import {
 import { withBase } from "../utils/paths";
 
 const title = "金句牆｜七日書博物館";
-const description = `${quoteWallCount} 則文友親手摘下的金句，跨屆典藏在這面牆上。`;
+const description =
+  quoteWallCount > 0
+    ? `${quoteWallCount} 則文友親手摘下的金句，跨屆典藏在這面牆上。`
+    : "文友親手摘下的金句，跨屆典藏在這面牆上。";
 const articleUrl = (hash: string) =>
   hash ? `https://matters.town/a/${hash}` : "#";
 ---
@@ -47,11 +50,13 @@ const articleUrl = (hash: string) =>
               data-campaign={q.campaignName}
             >
               <a class="memo-link" href={articleUrl(q.articleHash)} target="_blank" rel="noreferrer">
-                <blockquote class="memo-quote">{q.content}</blockquote>
-                <figcaption class="memo-meta">
-                  <span class="memo-author">— {q.author}</span>
-                  {q.campaignName && <span class="memo-src">{q.campaignName}</span>}
-                </figcaption>
+                <figure class="memo-figure">
+                  <blockquote class="memo-quote">{q.content}</blockquote>
+                  <figcaption class="memo-meta">
+                    <span class="memo-author">— {q.author}</span>
+                    {q.campaignName && <span class="memo-src">{q.campaignName}</span>}
+                  </figcaption>
+                </figure>
               </a>
             </li>
           ))}
@@ -166,6 +171,9 @@ const articleUrl = (hash: string) =>
   .memo[data-variant="3"] .memo-link { background: #dcefff; }
   .memo[data-variant="4"] .memo-link { background: #ffe2ef; }
 
+  .memo-figure {
+    margin: 0;
+  }
   .memo-quote {
     margin: 0;
     font-size: 0.95rem;

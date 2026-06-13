@@ -64,15 +64,27 @@ const QUOTES_QUERY = `
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function fetchQuotes(shortHash) {
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: QUOTES_QUERY,
-      variables: { shortHash, first: PER_CAMPAIGN_LIMIT },
-    }),
-  });
-  const json = await res.json();
+  // 單期失敗（HTTP 非 2xx / 回應不是 JSON / 網路錯誤）只警告、視為 0 則，
+  // 不中斷整支腳本 — 與下方 GraphQL errors 的 per-campaign fallback 同一模式。
+  let json;
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: QUOTES_QUERY,
+        variables: { shortHash, first: PER_CAMPAIGN_LIMIT },
+      }),
+    });
+    if (!res.ok) {
+      console.warn(`  ⚠ ${shortHash}: HTTP ${res.status} ${res.statusText}`);
+      return { name: null, quotes: [] };
+    }
+    json = await res.json();
+  } catch (e) {
+    console.warn(`  ⚠ ${shortHash}: ${e.message}`);
+    return { name: null, quotes: [] };
+  }
   if (json.errors) {
     // 階段 3 未上線時 quotes 欄位可能不存在 → 視為該期 0 則，不中斷
     console.warn(`  ⚠ ${shortHash}: ${json.errors[0].message}`);

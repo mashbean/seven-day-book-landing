@@ -34,4 +34,9 @@ jobs:
           title: "chore: refresh quote wall data"
           body: "自動刷新金句牆資料（fetch-quote-wall.mjs）。"
           branch: auto/refresh-quote-wall
+          delete-branch: true
+          base: main
           add-paths: src/data/quote-wall.ts
+          labels: |
+            automated
+            content
