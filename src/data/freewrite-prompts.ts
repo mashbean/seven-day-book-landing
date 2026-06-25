@@ -1,4 +1,4 @@
-// 七日書全期題目資料 — 由 scripts/scrape-campaign-prompts.mjs (2026-05-19) 自動產生
+// 七日書全期題目資料 — 由 scripts/scrape-campaign-prompts.mjs (2026-06-25) 自動產生
 // 從各期 Matters 公告文章 markdown 解析「### 本月題目」段落抽 7 (三日書 3) 題
 // 重跑：node scripts/scrape-campaign-prompts.mjs --write
 

@@ -1,4 +1,4 @@
-// 七日書社群精華句子 — 由 scripts/curate-community-quotes.mjs (2026-05-19) 自動產生
+// 七日書社群精華句子 — 由 scripts/curate-community-quotes.mjs (2026-06-25) 自動產生
 // 從 freewriteFeatured 用文本分析評分（長度 / 具體性 / 情感 / 詩意）抽出每期最高分句
 // 跨期分散，目前取 8 句。
 // 重跑：node scripts/curate-community-quotes.mjs --write
